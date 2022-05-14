@@ -4,7 +4,8 @@ const app = express();
 const port = process.env.PORT || 5000
 const bodyParser = require('body-parser')
 const cors = require('cors');
-// const committees = require('./routes/committees')
+const boss = require('./routes/bossRoute')
+const login = require('./routes/loginRoute')
 
 // try {
 //     sequelize.sync({ force: true })
@@ -19,8 +20,8 @@ try {
     app.use(bodyParser.json()); // for parsing application/json
     app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/xwww-form-urlencoded
     app.use(cors());
-    // app.use('/committees', committees);
-    // app.use('/users', users);
+    app.use('/boss', boss);
+    app.use('/login', login);
     // app.use('/login', login);
     // app.use('/tasks', tasks);
 
