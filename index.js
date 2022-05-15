@@ -6,6 +6,7 @@ const bodyParser = require('body-parser')
 const cors = require('cors');
 const boss = require('./routes/bossRoute')
 const login = require('./routes/loginRoute')
+const branch = require('./routes/branchRoute')
 
 // try {
 //     sequelize.sync({ force: true })
@@ -22,7 +23,7 @@ try {
     app.use(cors());
     app.use('/boss', boss);
     app.use('/login', login);
-    // app.use('/login', login);
+    app.use('/branch', branch);
     // app.use('/tasks', tasks);
 
 } catch (error) {

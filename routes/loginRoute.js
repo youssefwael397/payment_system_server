@@ -8,15 +8,15 @@ const upload = multer()
 router.post('/', upload.none(), async (req, res) => {
     try {
         const { email, password } = req.body;
-        const login_token = await loginController.login(email, password);
-
-        if (login_token) {
-            res.send(login_token)
-        } else {
-            res.status(403).send({
+        const { login_token, err } = await loginController.login(email, password);
+        if (err) {
+            res.status(err.code).send({
                 status: 'error',
-                "error": "bad credentials please login again"
+                "error": err.text
             })
+
+        } else {
+            res.send(login_token)
         }
 
     } catch (error) {
