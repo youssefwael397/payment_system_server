@@ -2,19 +2,25 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const jwt_encrypt = process.env.JWT_ENCRYPT;
 
-const isBoss = (token) => {
-    const is_verify = jwt.verify(token, jwt_encrypt);
-    if (!is_verify) {
-        return false
+// check if verify or not
+const isVerify = (token) => {
+    const isVerified = jwt.verify(token, jwt_encrypt);
+    console.log("isVerify dunc==")
+    if (isVerified) {
+        return true
     } else {
-        const decoded_token = jwt.decode(token);
-        const is_boss = decoded_token.is_boss;
-        return is_boss
+        return false
     }
+}
 
+//  check if boss or not 
+const isBoss = (token) => {
+    const decodedToken = jwt.decode(token, jwt_encrypt);
+    return decodedToken.is_boss;
 }
 
 const tokenValidate = {
+    isVerify,
     isBoss
 }
 

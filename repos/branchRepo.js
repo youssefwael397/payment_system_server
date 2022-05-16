@@ -13,16 +13,79 @@ const createNewBranch = async (branch) => {
 }
 
 
-// get branch by name
-const getBranchByName = async (name) => {
+// update branch 
+const updateBranch = async (branch_id, branch_name, branch_address) => {
+    let updated_branch;
     try {
-        const branch = await Branch.findOne({ where: { branch_name: name } });
-        return branch
+        await Branch.update(
+            {
+                branch_name: branch_name,
+                branch_address: branch_address
+            },
+            {
+                where: { branch_id: branch_id }
+            }
+        );
+        updated_branch = await Branch.findOne({ where: { branch_id: branch_id } })
+        return updated_branch
+
     } catch (error) {
-        console.log("branchRepo getBranchByName error: " + error)
+        console.log("branchRepo updateBranch error: " + error)
     }
 }
 
+
+// update branch logo img
+const updateLogoImage = async (branch_id, logo) => {
+    try {
+        await Branch.update(
+            {
+                logo: logo
+            },
+            {
+                where: { branch_id: branch_id }
+            }
+        );
+        let updated_branch = await Branch.findOne({ where: { branch_id: branch_id } })
+        return updated_branch
+
+    } catch (error) {
+        console.log("branchRepo updateLogoImage error: " + error)
+    }
+}
+
+
+
+// get all branches
+const getAllBranches = async () => {
+    try {
+        const branches = await Branch.findAll();
+        return branches
+    } catch (error) {
+        console.log("branchRepo getAllBranches error: " + error)
+    }
+}
+
+// get branch by id
+const getBranchById = async (id) => {
+    try {
+        const branch = await Branch.findOne({ where: { branch_id: id } });
+        return branch
+    } catch (error) {
+        console.log("branchRepo getBranchById error: " + error)
+    }
+}
+
+
+// get branch by id
+const deleteBranchById = async (id) => {
+    try {
+        const branch = await Branch.destroy({ where: { branch_id: id } });
+        return branch
+    } catch (error) {
+        console.log("branchRepo getBranchById error: " + error)
+    }
+}
 
 const checkIfBranchExists = async (branch) => {
     const exist_branch = await Branch.findOne({
@@ -45,8 +108,12 @@ const checkIfBranchExists = async (branch) => {
 // this object is responsible for exporting functions of this file to other files
 const branchRepo = {
     createNewBranch,
-    getBranchByName,
-    checkIfBranchExists
+    checkIfBranchExists,
+    getAllBranches,
+    getBranchById,
+    deleteBranchById,
+    updateBranch,
+    updateLogoImage
 }
 
 
