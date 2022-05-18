@@ -7,6 +7,7 @@ const cors = require('cors');
 const boss = require('./routes/bossRoute')
 const login = require('./routes/loginRoute')
 const branch = require('./routes/branchRoute')
+const manager = require('./routes/managerRoute')
 
 // try {
 //     sequelize.sync({ force: true })
@@ -24,6 +25,7 @@ try {
     app.use('/boss', boss);
     app.use('/login', login);
     app.use('/branch', branch);
+    app.use('/manager', manager);
     // app.use('/tasks', tasks);
 
 } catch (error) {

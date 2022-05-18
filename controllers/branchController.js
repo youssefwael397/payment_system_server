@@ -1,34 +1,31 @@
 const { branchRepo } = require('../repos/branchRepo')
 const { tokenValidate } = require('./tokenValidate')
 const fs = require('fs');
-const bcrypt = require('bcryptjs');
+const fsAsync = require('fs').promises;
 
 // Create new branch
 const createNewBranch = async (branch_name, branch_address, logoImg, token) => {
     let err, new_branch;
     const isVerify = tokenValidate.isVerify(token);
-    console.log(isVerify)
     if (!isVerify) {
         err = {
             code: 401,
             text: "Invalid token"
         }
     } else {
-        const isBoss = tokenValidate.isVerify(token);
+        const isBoss = tokenValidate.isBoss(token);
         if (!isBoss) {
             err = {
                 code: 403,
                 text: "You have no permissions to delete branches."
             }
         } else {
-
             if (!branch_name || !branch_address || !logoImg) {
                 err = {
                     code: 404,
                     text: "Please Insert All information what we need."
                 }
             } else {
-
                 try {
                     const branch = {
                         branch_name: branch_name,
@@ -55,14 +52,10 @@ const createNewBranch = async (branch_name, branch_address, logoImg, token) => {
 }
 
 
-// Create new branch
+// update branch info
 const updateBranch = async (branch_id, branch_name, branch_address, token) => {
     let err, branch;
-    console.log(token)
     const isValid = tokenValidate.isVerify(token);
-    // console.log(token)
-    console.log("isValid")
-    console.log(isValid)
     if (!isValid) {
         err = {
             code: 401,
@@ -82,7 +75,6 @@ const updateBranch = async (branch_id, branch_name, branch_address, token) => {
                     text: "Please Insert All information what we need."
                 }
             } else {
-
                 try {
                     const existBranch = await getBranchById(branch_id);
                     if (!existBranch.branch) {
@@ -115,6 +107,15 @@ const duplicateBranchInfo = async (branch) => {
 const getAllBranches = async () => {
     try {
         const branches = await branchRepo.getAllBranches();
+        let promises = [];
+        branches.forEach((branch) => {
+            promises.push(new Promise(async (resolve, reject) => {
+                const img = await fsAsync.readFile(`img/${branch.logo}`, { encoding: 'base64' })
+                branch.logo = img
+                resolve();
+            }))
+        })
+        await Promise.all(promises);
         return branches
     } catch (err) {
         console.log("branchController getAllBranches error: " + err)
@@ -131,6 +132,9 @@ const getBranchById = async (id) => {
                 code: 404,
                 text: `No Branches with id: ${id}`
             }
+        } else {
+            const img = await fsAsync.readFile(`img/${branch.logo}`, { encoding: 'base64' })
+            branch.logo = img
         }
         return { branch, err }
     } catch (err) {
@@ -139,44 +143,52 @@ const getBranchById = async (id) => {
 
 }
 
+// update branch logo image 
 const updateLogoImage = async (id, logoImg, token) => {
     try {
         let success, err;
-        const isVerify = tokenValidate.isVerify(token);
-        if (!isVerify) {
+        if (!token) {
             err = {
                 code: 401,
-                text: "Invalid token"
+                text: "please attach token."
             }
         } else {
-            const isBoss = tokenValidate.isBoss(token);
-            if (!isBoss) {
+            const isVerify = tokenValidate.isVerify(token);
+            if (!isVerify) {
                 err = {
-                    code: 403,
-                    text: "You have no permissions to update logo image."
+                    code: 401,
+                    text: "Invalid token"
                 }
             } else {
-                if (!logoImg) {
+                const isBoss = tokenValidate.isBoss(token);
+                if (!isBoss) {
                     err = {
-                        code: 404,
-                        text: "Please Attach logo image."
+                        code: 403,
+                        text: "You have no permissions to update logo image."
                     }
                 } else {
-                    const existBranch = await getBranchById(id);
-                    if (!existBranch.branch) {
+                    if (!logoImg) {
                         err = {
                             code: 404,
-                            text: `No Branches with id: ${id}`
+                            text: "Please Attach logo image."
                         }
-                        fs.unlinkSync(`img/${logoImg.filename}`)
                     } else {
-                        const updateBranch = await branchRepo.updateLogoImage(id, logoImg.filename);
-                        if (updateBranch) {
-                            fs.unlinkSync(`img/${existBranch.branch.logo}`)
-                            success = `logo image updated successfully`
+                        const existBranch = await branchRepo.getBranchById(id);
+                        if (!existBranch) {
+                            err = {
+                                code: 404,
+                                text: `No Branches with id: ${id}`
+                            }
+                            fs.unlinkSync(`img/${logoImg.filename}`)
+                        } else {
+                            const updateBranch = await branchRepo.updateLogoImage(id, logoImg.filename);
+                            if (updateBranch) {
+                                fs.unlinkSync(`img/${existBranch.logo}`)
+                                success = `logo image updated successfully`
+                            }
                         }
-                    }
 
+                    }
                 }
             }
         }
@@ -188,7 +200,7 @@ const updateLogoImage = async (id, logoImg, token) => {
 }
 
 
-// get branch by id
+// delete branch by id
 const deleteBranchById = async (id, token) => {
     try {
         let err, result;
@@ -205,36 +217,36 @@ const deleteBranchById = async (id, token) => {
                     text: "Invalid token"
                 }
             } else {
-                const isBoss = tokenValidate.isVerify(token);
+                const isBoss = tokenValidate.isBoss(token);
                 if (!isBoss) {
                     err = {
                         code: 403,
                         text: "You have no permissions to delete branches."
                     }
                 } else {
-                    let { branch } = await getBranchById(id);
+                    let branch = await branchRepo.getBranchById(id);
                     if (!branch) {
                         err = {
                             code: 404,
                             text: `No Branches with id: ${id}`
                         }
                     } else {
-                        fs.unlinkSync(`img/${branch.logo}`)
+                        const previous_logo = fs.readFile(`img/${branch.logo}`)
+                        if (previous_logo) {
+                            fs.unlinkSync(`img/${branch.logo}`)
+                        }
                         await branchRepo.deleteBranchById(id);
                         result = `Branch "${branch.branch_name}" 's been deleted.`
                     }
                 }
             }
-            return { result, err }
         }
+        return { result, err }
     } catch (err) {
         console.log("branchController deleteBranchById error: " + err)
     }
 
 }
-
-
-
 
 
 // this object is responsible for exporting functions of this file to other files
@@ -246,6 +258,28 @@ const branchController = {
     updateBranch,
     updateLogoImage
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 module.exports = { branchController }

@@ -17,10 +17,10 @@ const upload = multer({ storage: storage })
 
 // create new branch by form data 
 router.post('/create', upload.single('logo'), async (req, res) => {
+    const { branch_name, branch_address } = req.body;
+    const token = req.body.token || req.headers.authorization
+    const logoImg = req.file;
     try {
-        const { branch_name, branch_address } = req.body;
-        const token = req.body.token || req.headers.authorization
-        const logoImg = req.file;
         const { new_branch, err } = await branchController.createNewBranch(branch_name, branch_address, logoImg, token);
         if (err) {
             fs.unlinkSync(logoImg.path)
@@ -32,6 +32,7 @@ router.post('/create', upload.single('logo'), async (req, res) => {
             res.send(new_branch)
         }
     } catch (error) {
+        fs.unlinkSync(logoImg.path)
         res.status(500).send({
             status: "error",
             error
@@ -41,10 +42,11 @@ router.post('/create', upload.single('logo'), async (req, res) => {
 })
 
 // update branch by form data 
-router.put('/update', upload.none(), async (req, res) => {
+router.put('/update/:branch_id', upload.none(), async (req, res) => {
+    const { branch_name, branch_address } = req.body;
+    const { branch_id } = req.params;
+    const token = req.body.token || req.headers.authorization
     try {
-        const { branch_id, branch_name, branch_address } = req.body;
-        const token = req.body.token || req.headers.authorization
         const { branch, err } = await branchController.updateBranch(branch_id, branch_name, branch_address, token);
         if (err) {
             res.status(err.code).send({
@@ -63,15 +65,13 @@ router.put('/update', upload.none(), async (req, res) => {
 
 })
 
-// update branch by form data 
-router.put('/update/image/:id', upload.single('image'), async (req, res) => {
+// update branch logo image by form data 
+router.put('/update/image/:id', upload.single('logo'), async (req, res) => {
+    const { id } = req.params
+    const token = req.body.token || req.headers.authorization
+    const logoImg = req.file;
     try {
-        const { id } = req.params
-        const token = req.body.token || req.headers.authorization
-        const logoImg = req.file;
         const { success, err } = await branchController.updateLogoImage(id, logoImg, token);
-        console.log(success)
-        console.log(err)
         if (err) {
             res.status(err.code).send({
                 status: 'error',
@@ -106,8 +106,8 @@ router.get('/', async (req, res) => {
 
 // get branch by id
 router.get('/:id', async (req, res) => {
+    const { id } = req.params;
     try {
-        const { id } = req.params;
         const { branch, err } = await branchController.getBranchById(id);
         if (err) {
             res.status(err.code).send({
@@ -129,9 +129,9 @@ router.get('/:id', async (req, res) => {
 
 // delete branch by id
 router.delete('/:id', async (req, res) => {
+    const token = req.body.token || req.headers.authorization
+    const { id } = req.params;
     try {
-        const token = req.body.token || req.headers.authorization
-        const { id } = req.params;
         const { result, err } = await branchController.deleteBranchById(id, token);
         if (err) {
             res.status(err.code).send({

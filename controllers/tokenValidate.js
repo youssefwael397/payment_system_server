@@ -19,9 +19,16 @@ const isBoss = (token) => {
     return decodedToken.is_boss;
 }
 
+//  check if manager or not 
+const isManager = (token) => {
+    const decodedToken = jwt.decode(token, jwt_encrypt);
+    return decodedToken.is_manager;
+}
+
 const tokenValidate = {
     isVerify,
-    isBoss
+    isBoss,
+    isManager
 }
 
 module.exports = { tokenValidate }

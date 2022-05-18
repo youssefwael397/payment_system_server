@@ -1,36 +1,59 @@
 const { bossRepo } = require('../repos/bossRepo')
+const { managerRepo } = require('../repos/managerRepo')
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
-const jwt = require('jsonwebtoken');
 const jwt_encrypt = process.env.JWT_ENCRYPT;
+const jwt = require('jsonwebtoken');
 
 const login = async (email, password) => {
-    let err = '',
-        login_token = '';
-    console.log("login controller")
+    let err, login_token, isBoss = false, isManager = false;
     const boss = await bossRepo.getBossByEmail(email);
-    if (!boss) {
+    const manager = await managerRepo.getManagerByEmail(email);
+    console.log(boss)
+    console.log(manager)
+    console.log('get boss')
+    if (!boss && !manager) {
         err = {
             code: 404,
             text: "This email is not found."
         }
     } else {
-        const isValid = await bcrypt.compare(password, boss.password);
-        if (!isValid) {
+        if (boss) {
+            isBoss = await bcrypt.compare(password, boss.password);
+        }
+        if (manager) {
+            isManager = await bcrypt.compare(password, manager.password);
+        }
+
+        if (!isBoss && !isManager) {
             err = {
                 code: 401,
                 text: "Bad credentials. Please Try Again..."
             }
+        } else {
+            if (boss) {
+                login_token = jwt.sign({
+                    id: boss.boss_id,
+                    name: boss.boss_name,
+                    email: boss.email,
+                    is_boss: isBoss,
+                    is_manager: isManager,
+                    is_sales: false,
+                    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7) // one week expiration
+                }, jwt_encrypt)
+            } else if (manager) {
+                login_token = jwt.sign({
+                    id: manager.manager_id,
+                    name: manager.manager_name,
+                    email: manager.email,
+                    is_boss: isBoss,
+                    is_manager: isManager,
+                    is_sales: false,
+                    exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7) // one week expiration
+                }, jwt_encrypt)
+            }
+
         }
-        login_token = jwt.sign({
-            id: boss.boss_id,
-            name: boss.boss_name,
-            email: boss.email,
-            is_boss: isValid,
-            is_manager: false,
-            is_sales: false,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7) // one week expiration
-        }, jwt_encrypt)
     }
 
     return { login_token, err }

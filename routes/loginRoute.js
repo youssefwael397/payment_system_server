@@ -6,8 +6,8 @@ const upload = multer()
 
 
 router.post('/', upload.none(), async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
         const { login_token, err } = await loginController.login(email, password);
         if (err) {
             res.status(err.code).send({

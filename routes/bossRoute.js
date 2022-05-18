@@ -18,14 +18,16 @@ const upload = multer({ storage: storage })
 
 // create new boss by form data 
 router.post('/create', upload.none(), async (req, res) => {
+    const { boss_name, email, password } = req.body;
     try {
-        const { boss_name, email, password } = req.body;
-        const boss = await bossController.createNewBoss(boss_name, email, password);
-        if (!boss) {
-            const err = "Please Insert All information what we need.";
-            res.status(422).send(err)
+        const { new_boss, err } = await bossController.createNewBoss(boss_name, email, password);
+        if (err) {
+            res.status(err.code).send({
+                status: "error",
+                error: err.text
+            })
         } else {
-            res.send(boss)
+            res.send(new_boss)
         }
     } catch (error) {
         res.status(403).send({
@@ -39,7 +41,13 @@ router.post('/create', upload.none(), async (req, res) => {
 // get boss by id as params
 router.get('/:id', async (req, res) => {
     try {
-        const boss = await bossController.getBossById(req.params.id);
+        const { boss, err } = await bossController.getBossById(req.params.id);
+        if (err) {
+            res.status(err.code).send({
+                status: "error",
+                error: err.text
+            })
+        }
         res.send(boss)
     } catch (error) {
         res.status(403).send({
@@ -49,5 +57,26 @@ router.get('/:id', async (req, res) => {
     }
 
 })
+
+// delete boss by id as params
+router.delete('/:id', async (req, res) => {
+    try {
+        const { result, err } = await bossController.deleteBossById(req.params.id);
+        if (err) {
+            res.status(err.code).send({
+                status: "error",
+                error: err.text
+            })
+        }
+        res.send(result)
+    } catch (error) {
+        res.status(403).send({
+            status: "error",
+            error
+        })
+    }
+
+})
+
 
 module.exports = router

@@ -3,28 +3,47 @@ const bcrypt = require('bcryptjs');
 
 // Create new boss 
 const createNewBoss = async (boss_name, email, password) => {
-    if (!boss_name || !email || !password) {
-        return false
-    } else {
-        try {
+    let err, new_boss;
+    try {
+        if (!boss_name || !email || !password) {
+            err = {
+                code: 403,
+                text: 'Missing parameters. please insert all info to create new boss'
+            }
+        } else {
             const boss = {
                 boss_name: boss_name,
                 email: email,
-                password: bcrypt.hashSync(password, 10)
+                password: bcrypt.hashSync(password, 10) // hashing password to save it to db
             }
-            const new_boss = await bossRepo.createNewBoss(boss);
-            return new_boss
-        } catch (error) {
-            console.log("bossController createNewBoss error: " + error)
+            const isExist = await bossRepo.getBossByEmail(boss.email);
+            if (isExist) {
+                err = {
+                    code: 409,
+                    text: 'Duplicate information. please change it'
+                }
+            } else {
+                new_boss = await bossRepo.createNewBoss(boss);
+            }
         }
+        return { new_boss, err }
+    } catch (error) {
+        console.log("bossController createNewBoss error: " + error)
     }
 }
 
 // get boss by id
 const getBossById = async (id) => {
+    let boss, err;
     try {
-        const boss = await bossRepo.getBossById(id)
-        return boss
+        boss = await bossRepo.getBossById(id)
+        if (!boss) {
+            err = {
+                code: 404,
+                text: `no boss with id ${id}`
+            }
+        }
+        return { boss, err }
     } catch (error) {
         console.log("bossController getBossById error: " + error)
     }
@@ -43,9 +62,18 @@ const getBossByEmail = async (email) => {
 
 // delete boss by id
 const deleteBossById = async (id) => {
+    let err, result;
     try {
         const boss = await bossRepo.deleteBossById(id);
-        return boss
+        if (!boss) {
+            err = {
+                code: 404,
+                text: `No boss with id: ${id}`
+            }
+        } else {
+            result = `boss with id: ${id} deleted successfully`
+        }
+        return { result, err }
     } catch (error) {
         console.log("bossController deleteBossById error: " + error)
     }
