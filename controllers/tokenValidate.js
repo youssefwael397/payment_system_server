@@ -5,7 +5,6 @@ const jwt_encrypt = process.env.JWT_ENCRYPT;
 // check if verify or not
 const isVerify = (token) => {
     const isVerified = jwt.verify(token, jwt_encrypt);
-    console.log("isVerify dunc==")
     if (isVerified) {
         return true
     } else {

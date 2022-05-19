@@ -8,6 +8,8 @@ const boss = require('./routes/bossRoute')
 const login = require('./routes/loginRoute')
 const branch = require('./routes/branchRoute')
 const manager = require('./routes/managerRoute')
+const category = require('./routes/categoryRoute')
+const product = require('./routes/productRoute')
 
 // try {
 //     sequelize.sync({ force: true })
@@ -26,7 +28,8 @@ try {
     app.use('/login', login);
     app.use('/branch', branch);
     app.use('/manager', manager);
-    // app.use('/tasks', tasks);
+    app.use('/category', category);
+    app.use('/product', product);
 
 } catch (error) {
     res.status(500).send({

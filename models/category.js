@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Category.belongsTo(models.Branch, { foreignKey: 'branch_id', targetKey: 'branch_id' });
     }
   }
   Category.init({
@@ -22,7 +23,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     category_name: {
       type: DataTypes.STRING,
-      unique: true,
+      unique: false,
+      require: true
+    },
+    branch_id: {
+      type: DataTypes.INTEGER,
       require: true
     }
   }, {

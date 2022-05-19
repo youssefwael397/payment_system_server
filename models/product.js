@@ -28,7 +28,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     branch_id: {
       type: DataTypes.INTEGER,
-      unique: true,
       require: true
     },
     product_name: {
