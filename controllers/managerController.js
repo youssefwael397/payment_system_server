@@ -3,6 +3,7 @@ const { tokenValidate } = require('./tokenValidate')
 const fs = require('fs');
 const fsAsync = require('fs').promises;
 const bcrypt = require('bcryptjs');
+const { branchRepo } = require('../repos/branchRepo');
 
 // Create new manager
 const createNewManager = async (branch_id, manager_name, email, password, national_id, phone, manager_img, face_national_id_img, back_national_id_img, facebook_link, token) => {
@@ -46,6 +47,7 @@ const createNewManager = async (branch_id, manager_name, email, password, nation
                             back_national_id_img: back_national_id_img.filename,
                             facebook_link: facebook_link
                         }
+
                         const duplicateManager = await duplicateManagerInfo(manager);
                         if (duplicateManager) {
                             err = {
@@ -53,7 +55,15 @@ const createNewManager = async (branch_id, manager_name, email, password, nation
                                 text: "Duplicate information. You cannot add more than one manager to the same branch."
                             }
                         } else {
-                            new_manager = await managerRepo.createNewManager(manager);
+                            const isBranchExists = await branchRepo.getBranchById(branch_id)
+                            if (!isBranchExists) {
+                                err = {
+                                    code: 400,
+                                    text: `There is no branches with id : ${branch_id}`
+                                }
+                            } else {
+                                new_manager = await managerRepo.createNewManager(manager);
+                            }
                         }
                     } catch (error) {
                         console.log("managerController createNewManager error: " + error)

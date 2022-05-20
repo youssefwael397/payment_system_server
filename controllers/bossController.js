@@ -1,4 +1,5 @@
 const { bossRepo } = require('../repos/bossRepo')
+const { tokenValidate } = require('./tokenValidate')
 const bcrypt = require('bcryptjs');
 
 // Create new boss 
@@ -31,6 +32,52 @@ const createNewBoss = async (boss_name, email, password) => {
         console.log("bossController createNewBoss error: " + error)
     }
 }
+
+// update boss 
+const updateBoss = async (boss_id, boss_name, email, token) => {
+    let err, new_boss;
+    try {
+        if (!token) {
+            err = {
+                code: 401,
+                text: 'please attach token.'
+            }
+        } else {
+            if (!tokenValidate.isBoss) {
+                err = {
+                    code: 401,
+                    text: 'you have no permissions to update boss info.'
+                }
+            } else {
+                if (!boss_name || !email) {
+                    err = {
+                        code: 403,
+                        text: 'Missing parameters. please insert all info to create new boss'
+                    }
+                } else {
+                    const boss = {
+                        boss_id: boss_id,
+                        boss_name: boss_name,
+                        email: email,
+                    }
+                    const isExist = await bossRepo.getBossById(boss_id);
+                    if (!isExist) {
+                        err = {
+                            code: 400,
+                            text: `no boss with id: ${boss_id}`
+                        }
+                    } else {
+                        new_boss = await bossRepo.updateBoss(boss);
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.log("bossController updateBoss error: " + error)
+    }
+    return { new_boss, err }
+}
+
 
 // get boss by id
 const getBossById = async (id) => {
@@ -85,7 +132,8 @@ const bossController = {
     createNewBoss,
     getBossById,
     getBossByEmail,
-    deleteBossById
+    deleteBossById,
+    updateBoss
 }
 
 

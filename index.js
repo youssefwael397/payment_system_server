@@ -10,6 +10,8 @@ const branch = require('./routes/branchRoute')
 const manager = require('./routes/managerRoute')
 const category = require('./routes/categoryRoute')
 const product = require('./routes/productRoute')
+const sales = require('./routes/salesRoute')
+const client = require('./routes/clientRoute')
 
 // try {
 //     sequelize.sync({ force: true })
@@ -30,6 +32,8 @@ try {
     app.use('/manager', manager);
     app.use('/category', category);
     app.use('/product', product);
+    app.use('/sales', sales);
+    app.use('/client', client);
 
 } catch (error) {
     res.status(500).send({

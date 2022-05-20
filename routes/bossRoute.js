@@ -38,6 +38,30 @@ router.post('/create', upload.none(), async (req, res) => {
 
 })
 
+// update boss by form data 
+router.put('/update/:boss_id', upload.none(), async (req, res) => {
+    const { boss_name, email } = req.body;
+    const token = req.body.token || req.headers.authorization
+    const { boss_id } = req.params
+    try {
+        const { new_boss, err } = await bossController.updateBoss(boss_id, boss_name, email, token);
+        if (err) {
+            res.status(err.code).send({
+                status: "error",
+                error: err.text
+            })
+        } else {
+            res.send(new_boss)
+        }
+    } catch (error) {
+        res.status(403).send({
+            status: "error",
+            error
+        })
+    }
+
+})
+
 // get boss by id as params
 router.get('/:id', async (req, res) => {
     try {

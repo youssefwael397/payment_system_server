@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // define association here
       Sales.belongsTo(models.Manager, { foreignKey: 'manager_id', targetKey: 'manager_id' });
+      Sales.belongsTo(models.Branch, { foreignKey: 'branch_id', targetKey: 'branch_id' });
       Sales.hasMany(models.Client, { foreignKey: 'sales_id', targetKey: 'sales_id' });
 
     }
@@ -21,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+      require: true
+    },
+    sales_name: {
+      type: DataTypes.STRING,
+      unique: true,
       require: true
     },
     manager_id: {
@@ -50,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       require: true
     },
-    manager_img: {
+    sales_img: {
       type: DataTypes.STRING,
       require: true
     },

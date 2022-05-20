@@ -1,5 +1,5 @@
 // imports
-const { Product, Sequelize, sequelize } = require('../models/index')
+const { Product, Category, Branch, Sequelize, sequelize } = require('../models/index')
 const op = Sequelize.Op;
 
 // Create new Product 
@@ -35,7 +35,7 @@ const updateProduct = async (product_id, product_name, product_price, count) => 
 
 const getAllProductsByBranchId = async (id) => {
     try {
-        const products = await Product.findAll({ where: { branch_id: id } });
+        const products = await Product.findAll({ where: { branch_id: id }, include: [{ model: Branch }, { model: Category }] });
         return products
     } catch (error) {
         console.log("ProductRepo getAllProductsByBranchId error: " + error)
@@ -45,7 +45,7 @@ const getAllProductsByBranchId = async (id) => {
 // get Product by id
 const getProductById = async (id) => {
     try {
-        const product = await Product.findOne({ where: { Product_id: id } });
+        const product = await Product.findOne({ where: { Product_id: id }, include: [{ model: Branch }, { model: Category }] });
         return product
     } catch (error) {
         console.log("ProductRepo getProductById error: " + error)

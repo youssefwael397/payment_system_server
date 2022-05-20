@@ -24,10 +24,17 @@ const isManager = (token) => {
     return decodedToken.is_manager;
 }
 
+//  check if sales or not 
+const isSales = (token) => {
+    const decodedToken = jwt.decode(token, jwt_encrypt);
+    return decodedToken.is_sales;
+}
+
 const tokenValidate = {
     isVerify,
     isBoss,
-    isManager
+    isManager,
+    isSales
 }
 
 module.exports = { tokenValidate }
