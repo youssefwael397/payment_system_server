@@ -1,4 +1,4 @@
-const { Client, Branch, Sequelize } = require('../models/index')
+const { Client, Sales, Sequelize } = require('../models/index')
 const jwt = require('jsonwebtoken');
 const op = Sequelize.Op;
 
@@ -79,12 +79,8 @@ const updateClientNationalImages = async (id, face_national_id_img, back_nationa
 // get all client
 const getAllClients = async () => {
     try {
-        const client = await Client.findAll({
-            include: {
-                model: Branch,
-            }
-        });
-        return client
+        const clients = await Client.findAll();
+        return clients
     } catch (error) {
         console.log("clientRepo getAllClients error: " + error)
     }
@@ -95,8 +91,20 @@ const getClientById = async (id) => {
     try {
         const client = await Client.findOne({
             where: { client_id: id },
+        });
+        return client
+    } catch (error) {
+        console.log("clientRepo getClientById error: " + error)
+    }
+}
+
+// get client by id
+const getClientsBySalesId = async (id) => {
+    try {
+        const client = await Client.findOne({
+            where: { sales_id: id },
             include: {
-                model: Branch
+                model: Sales
             }
         });
         return client
@@ -105,17 +113,7 @@ const getClientById = async (id) => {
     }
 }
 
-// get client by email
-const getClientByEmail = async (email) => {
-    try {
-        const client = await Client.findOne({
-            where: { email: email }
-        });
-        return client
-    } catch (error) {
-        console.log("clientRepo getClientByEmail error: " + error)
-    }
-}
+
 
 // get client by id
 const deleteClientById = async (id) => {
@@ -150,7 +148,7 @@ const clientRepo = {
     checkIfClientExists,
     getAllClients,
     getClientById,
-    getClientByEmail,
+    getClientsBySalesId,
     deleteClientById,
     updateClient,
     updateClientImage,

@@ -12,6 +12,7 @@ const category = require('./routes/categoryRoute')
 const product = require('./routes/productRoute')
 const sales = require('./routes/salesRoute')
 const client = require('./routes/clientRoute')
+const processRoute = require('./routes/processRoute')
 
 // try {
 //     sequelize.sync({ force: true })
@@ -22,7 +23,7 @@ const client = require('./routes/clientRoute')
 try {
 
     // middleware
-    app.use(express.json()); // built-in middleware for express
+    app.use(express.json({ type: ['application/json', 'text/plain'] })) // built-in middleware for express
     app.use(bodyParser.json()); // for parsing application/json
     app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/xwww-form-urlencoded
     app.use(cors());
@@ -34,12 +35,10 @@ try {
     app.use('/product', product);
     app.use('/sales', sales);
     app.use('/client', client);
+    app.use('/process', processRoute);
 
 } catch (error) {
-    res.status(500).send({
-        status: 'error',
-        message: error
-    })
+    console.log(error)
 }
 
 // creating a server

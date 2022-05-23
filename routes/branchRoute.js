@@ -1,4 +1,6 @@
 const express = require('express');
+const auth = require('../middleware/auth')
+const boss = require('../middleware/boss')
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');
@@ -16,12 +18,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 
 // create new branch by form data 
-router.post('/create', upload.single('logo'), async (req, res) => {
+router.post('/create', auth, boss, upload.single('logo'), async (req, res) => {
     const { branch_name, branch_address } = req.body;
-    const token = req.body.token || req.headers.authorization
     const logoImg = req.file;
     try {
-        const { new_branch, err } = await branchController.createNewBranch(branch_name, branch_address, logoImg, token);
+        const { new_branch, err } = await branchController.createNewBranch(branch_name, branch_address, logoImg);
         if (err) {
             fs.unlinkSync(logoImg.path)
             res.status(err.code).send({
@@ -73,6 +74,7 @@ router.put('/update/image/:id', upload.single('logo'), async (req, res) => {
     try {
         const { success, err } = await branchController.updateLogoImage(id, logoImg, token);
         if (err) {
+            fs.unlinkSync(logoImg.path)
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text

@@ -45,9 +45,6 @@ router.post('/create', upload.any(), async (req, res) => {
             res.send(new_manager)
         }
     } catch (error) {
-        fs.unlinkSync(manager_img.path)
-        fs.unlinkSync(face_national_id_img.path)
-        fs.unlinkSync(back_national_id_img.path)
         res.status(500).send({
             status: "error",
             error
@@ -81,13 +78,15 @@ router.put('/update/:manager_id', upload.none(), async (req, res) => {
 })
 
 // update manager image by form data 
-router.put('/update/image/:id', upload.single('image'), async (req, res) => {
+router.put('/update/image/:id', upload.single('manager_img'), async (req, res) => {
     const { id } = req.params
     const token = req.body.token || req.headers.authorization
     const manager_img = req.file;
+
     try {
         const { success, err } = await managerController.updateManagerImage(id, manager_img, token);
         if (err) {
+            fs.unlinkSync(manager_img.path)
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text
@@ -115,6 +114,8 @@ router.put('/update/national-images/:id', upload.any(), async (req, res) => {
     try {
         const { success, err } = await managerController.updateManagerNationalImages(id, face_national_id_img, back_national_id_img, token);
         if (err) {
+            fs.unlinkSync(face_national_id_img.path)
+            fs.unlinkSync(back_national_id_img.path)
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text
@@ -130,7 +131,6 @@ router.put('/update/national-images/:id', upload.any(), async (req, res) => {
     }
 
 })
-
 
 
 // get all managers

@@ -1,5 +1,6 @@
 const { productRepo } = require('../repos/productRepo')
 const { branchRepo } = require('../repos/branchRepo')
+const { categoryRepo } = require('../repos/categoryRepo')
 const { tokenValidate } = require('./tokenValidate')
 const fs = require('fs');
 
@@ -40,22 +41,29 @@ const createNewProduct = async (category_id, branch_id, product_name, product_pr
                                 text: `No branches with id : ${branch_id}`
                             }
                         } else {
-
-                            const Product = {
-                                product_name: product_name,
-                                product_price: product_price,
-                                count: count,
-                                branch_id: branch_id,
-                                category_id: category_id
-                            }
-                            const duplicateProduct = await duplicateProductInfo(Product);
-                            if (duplicateProduct) {
+                            const categoryExist = await categoryRepo.getCategoryById(category_id)
+                            if (!categoryExist) {
                                 err = {
-                                    code: 409,
-                                    text: "Duplicate information. Please Change It."
+                                    code: 404,
+                                    text: `No category with id : ${category_id}`
                                 }
                             } else {
-                                new_Product = await productRepo.createNewProduct(Product);
+                                const Product = {
+                                    product_name: product_name,
+                                    product_price: product_price,
+                                    count: count,
+                                    branch_id: branch_id,
+                                    category_id: category_id
+                                }
+                                const duplicateProduct = await duplicateProductInfo(Product);
+                                if (duplicateProduct) {
+                                    err = {
+                                        code: 409,
+                                        text: "Duplicate information. Please Change It."
+                                    }
+                                } else {
+                                    new_Product = await productRepo.createNewProduct(Product);
+                                }
                             }
                         }
 
@@ -132,8 +140,17 @@ const duplicateProductInfo = async (Product) => {
 // get all products
 const getAllProductsByBranchId = async (id) => {
     try {
-        const products = await productRepo.getAllProductsByBranchId(id);
-        return products
+        let err, products;
+        const isBranchExist = await branchRepo.getBranchById(id)
+        if (!isBranchExist) {
+            err = {
+                code: 400,
+                text: `no branch with id: ${id}`
+            }
+        } else {
+            products = await productRepo.getAllProductsByBranchId(id);
+        }
+        return { products, err }
     } catch (err) {
         console.log("ProductController getAllProductsByBranchId error: " + err)
     }

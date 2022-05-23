@@ -129,8 +129,17 @@ const duplicateCategoryInfo = async (category) => {
 // get all categories
 const getAllCategoriesByBranchId = async (id) => {
     try {
-        const categories = await categoryRepo.getAllCategoriesByBranchId(id);
-        return categories
+        let err, categories;
+        const isBranchExist = await branchRepo.getBranchById(id)
+        if (!isBranchExist) {
+            err = {
+                code: 400,
+                text: `no branch with id: ${id}`
+            }
+        } else {
+            categories = await categoryRepo.getAllCategoriesByBranchId(id);
+        }
+        return { categories, err }
     } catch (err) {
         console.log("categoryController getAllCategoriesByBranchId error: " + err)
     }

@@ -66,8 +66,13 @@ router.put('/update/:Product_id', upload.none(), async (req, res) => {
 router.get('/branch/:id', async (req, res) => {
     const { id } = req.params
     try {
-        const categories = await productController.getAllProductsByBranchId(id);
-        res.send(categories)
+
+        const { products, err } = await productController.getAllProductsByBranchId(id);
+        if (err) {
+            res.status(err.code).send({ status: 'error', error: err.text })
+        } else {
+            res.send(products)
+        }
     } catch (error) {
         res.status(500).send({
             status: "error",

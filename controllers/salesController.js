@@ -59,11 +59,24 @@ const createNewSales = async (branch_id, manager_id, sales_name, email, password
                                 code: 409,
                                 text: "Duplicate information. Please change it"
                             }
-                            fs.unlinkSync(sales_img.path)
-                            fs.unlinkSync(face_national_id_img.path)
-                            fs.unlinkSync(back_national_id_img.path)
                         } else {
-                            new_sales = await salesRepo.createNewSales(sales);
+                            const isManagerExist = await managerRepo.getManagerById(manager_id)
+                            if (!isManagerExist) {
+                                err = {
+                                    code: 400,
+                                    text: `no manager with id : ${manager_id}`
+                                }
+                            } else {
+                                const isBranchExist = await branchRepo.getBranchById(branch_id)
+                                if (!isBranchExist) {
+                                    err = {
+                                        code: 400,
+                                        text: `no branch with id : ${branch_id}`
+                                    }
+                                } else {
+                                    new_sales = await salesRepo.createNewSales(sales);
+                                }
+                            }
                         }
                     } catch (error) {
                         console.log("salesController createNewSales error: " + error)
@@ -167,11 +180,11 @@ const getAllSales = async (token) => {
                     text: "Invalid token"
                 }
             } else {
-                const isBoss = tokenValidate.isBoss(token);
-                if (!isBoss) {
+                const isManager = tokenValidate.isManager(token);
+                if (!isManager) {
                     err = {
                         code: 403,
-                        text: "You have no permissions to update sales."
+                        text: "You have no permissions to get sales."
                     }
                 } else {
                     sales = await salesRepo.getAllSales();
@@ -195,9 +208,69 @@ const getAllSales = async (token) => {
         }
         return { sales, err }
     } catch (err) {
-        console.log("salesController getAllsales error: " + err)
+        console.log("salesController getAllSales error: " + err)
     }
 }
+
+
+// get all sales
+const getAllSalesByBranchId = async (token, branch_id) => {
+    let err, sales;
+    try {
+        if (!token) {
+            err = {
+                code: 401,
+                text: "please attach token."
+            }
+        } else {
+            const isValid = tokenValidate.isVerify(token);
+            if (!isValid) {
+                err = {
+                    code: 401,
+                    text: "Invalid token"
+                }
+            } else {
+                const isManager = tokenValidate.isManager(token);
+                if (!isManager) {
+                    err = {
+                        code: 403,
+                        text: "You have no permissions to get sales."
+                    }
+                } else {
+                    const isBranchExist = await branchRepo.getBranchById(branch_id)
+                    if (!isBranchExist) {
+                        err = {
+                            code: 400,
+                            text: `no branch with id : ${branch_id}`
+                        }
+                    } else {
+                        sales = await salesRepo.getAllSalesByBranchId(branch_id);
+                        let promises = [];
+                        sales.forEach((sales) => {
+                            promises.push(new Promise(async (resolve, reject) => {
+                                const img = await fsAsync.readFile(`img/${sales.sales_img}`, { encoding: 'base64' })
+                                const branch_img = await fsAsync.readFile(`img/${sales.Branch.logo}`, { encoding: 'base64' })
+                                const face_national_id_img = await fsAsync.readFile(`img/${sales.face_national_id_img}`, { encoding: 'base64' })
+                                const back_national_id_img = await fsAsync.readFile(`img/${sales.back_national_id_img}`, { encoding: 'base64' })
+                                sales.sales_img = img;
+                                sales.Branch.logo = branch_img;
+                                sales.face_national_id_img = face_national_id_img
+                                sales.back_national_id_img = back_national_id_img
+                                resolve();
+                            }))
+                        })
+                        await Promise.all(promises);
+                    }
+
+                }
+            }
+        }
+        return { sales, err }
+    } catch (err) {
+        console.log("salesController getAllSales error: " + err)
+    }
+}
+
 
 // get sales by id
 const getSalesById = async (id, token) => {
@@ -262,19 +335,22 @@ const updateSalesImage = async (id, sales_img, token) => {
                             text: "Please Attach sales image."
                         }
                     } else {
-                        const existsales = await salesRepo.getsalesById(id);
-                        if (!existsales) {
+                        const existSales = await salesRepo.getSalesById(id);
+                        if (!existSales) {
                             err = {
                                 code: 404,
-                                text: `No saless with id: ${id}`
+                                text: `No sales with id: ${id}`
                             }
                         } else {
-                            const updatesales = await salesRepo.updateMangerImage(id, sales_img.filename);
-                            if (updatesales) {
-                                fs.unlinkSync(`img/${existsales.sales_img}`)
+                            const updateSales = await salesRepo.updateMangerImage(id, sales_img.filename);
+                            if (updateSales) {
+                                fs.unlinkSync(`img/${existSales.sales_img}`)
                                 success = `sales image updated successfully`
                             } else {
-                                fs.unlinkSync(sales_img.filename)
+                                err = {
+                                    code: 500,
+                                    text: 'Failed to update sales image.'
+                                }
                             }
                         }
 
@@ -284,7 +360,7 @@ const updateSalesImage = async (id, sales_img, token) => {
         }
         return { success, err }
     } catch (error) {
-        console.log("salesController updatesalesImage error: " + err)
+        console.log("salesController updateSalesImage error: " + err)
 
     }
 }
@@ -319,21 +395,23 @@ const updateSalesNationalImages = async (id, face_national_id_img, back_national
                             text: "Please Attach national-id images."
                         }
                     } else {
-                        const existsales = await salesRepo.getsalesById(id);
-                        if (!existsales) {
+                        const existSales = await salesRepo.getSalesById(id);
+                        if (!existSales) {
                             err = {
                                 code: 404,
-                                text: `No saless with id: ${id}`
+                                text: `No sales with id: ${id}`
                             }
                         } else {
-                            const updatesales = await salesRepo.updatesalesNationalImages(id, face_national_id_img.filename, back_national_id_img.filename);
-                            if (updatesales) {
-                                fs.unlinkSync(`img/${existsales.face_national_id_img}`)
-                                fs.unlinkSync(`img/${existsales.back_national_id_img}`)
+                            const updateSales = await salesRepo.updateSalesNationalImages(id, face_national_id_img.filename, back_national_id_img.filename);
+                            if (updateSales) {
+                                fs.unlinkSync(`img/${existSales.face_national_id_img}`)
+                                fs.unlinkSync(`img/${existSales.back_national_id_img}`)
                                 success = `sales national-id images updated successfully`
                             } else {
-                                fs.unlinkSync(face_national_id_img.filename)
-                                fs.unlinkSync(back_national_id_img.filename)
+                                err = {
+                                    code: 500,
+                                    text: 'failed to update national images.'
+                                }
                             }
                         }
 
@@ -343,25 +421,25 @@ const updateSalesNationalImages = async (id, face_national_id_img, back_national
         }
         return { success, err }
     } catch (error) {
-        console.log("salesController updatesalesNationalImages error: " + err)
+        console.log("salesController updateSalesNationalImages error: " + err)
 
     }
 }
 
 // get sales by id
 const deleteSalesById = async (id, token) => {
-    console.log("deletesalesById")
+    console.log("deleteSalesById")
     try {
         let err, result;
         if (!token) {
-            console.log('token isnot esists')
+            console.log('token is not exists')
 
             err = {
                 code: 401,
                 text: "please attach token."
             }
         } else {
-            console.log('token is esists')
+            console.log('token is exists')
             const isVerify = tokenValidate.isVerify(token);
             if (!isVerify) {
                 err = {
@@ -373,22 +451,22 @@ const deleteSalesById = async (id, token) => {
                 if (!isBoss) {
                     err = {
                         code: 403,
-                        text: "You have no permissions to delete saless."
+                        text: "You have no permissions to delete sales."
                     }
                 } else {
                     console.log("isBoss")
 
-                    let sales = await salesRepo.getsalesById(id);
+                    let sales = await salesRepo.getSalesById(id);
                     if (!sales) {
                         err = {
                             code: 404,
-                            text: `No saless with id: ${id}`
+                            text: `No sales with id: ${id}`
                         }
                     } else {
                         fs.unlinkSync(`img/${sales.sales_img}`)
                         fs.unlinkSync(`img/${sales.face_national_id_img}`)
                         fs.unlinkSync(`img/${sales.back_national_id_img}`)
-                        await salesRepo.deletesalesById(id);
+                        await salesRepo.deleteSalesById(id);
                         result = `sales "${sales.sales_name}" 's been deleted.`
                     }
                 }
@@ -396,7 +474,7 @@ const deleteSalesById = async (id, token) => {
         }
         return { result, err }
     } catch (err) {
-        console.log("salesController deletesalesById error: " + err)
+        console.log("salesController deleteSalesById error: " + err)
     }
 
 }

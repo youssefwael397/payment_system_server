@@ -1,4 +1,5 @@
 const { clientRepo } = require('../repos/clientRepo')
+const { salesRepo } = require('../repos/salesRepo')
 const { tokenValidate } = require('./tokenValidate')
 const fs = require('fs');
 const fsAsync = require('fs').promises;
@@ -49,17 +50,27 @@ const createNewClient = async ({ sales_id, client_name, national_id, phone, work
                             back_national_id_img: back_national_id_img.filename,
                             facebook_link: facebook_link
                         }
-                        const duplicateClient = await duplicateClientInfo(client);
-                        if (duplicateClient) {
+                        const salesExist = await salesRepo.getSalesById(sales_id)
+                        if (!salesExist) {
                             err = {
-                                code: 409,
-                                text: "Duplicate information. Please change it"
+                                code: 400,
+                                text: `There is no sales with id: ${sales_id}`
                             }
-                            fs.unlinkSync(face_national_id_img.path)
-                            fs.unlinkSync(back_national_id_img.path)
                         } else {
-                            new_client = await clientRepo.createNewClient(client);
+
+                            const duplicateClient = await duplicateClientInfo(client);
+                            if (duplicateClient) {
+                                err = {
+                                    code: 409,
+                                    text: "Duplicate information. Please change it"
+                                }
+                                fs.unlinkSync(face_national_id_img.path)
+                                fs.unlinkSync(back_national_id_img.path)
+                            } else {
+                                new_client = await clientRepo.createNewClient(client);
+                            }
                         }
+
                     } catch (error) {
                         console.log("clientController createNewClient error: " + error)
                     }
@@ -102,33 +113,17 @@ const updateClient = async (client_id, client_name, email, national_id, phone, f
                     }
                 } else {
                     try {
-                        const existclient = await clientRepo.getclientById(client_id);
-                        if (!existclient) {
+                        const existClient = await clientRepo.getClientById(client_id);
+                        if (!existClient) {
                             err = {
                                 code: 404,
                                 text: `No client with id: ${client_id}`
                             }
                         } else {
-                            const isBranchExists = await branchRepo.getBranchById(branch_id)
-                            const isManagerExists = await managerRepo.getManagerById(manager_id)
-                            if (!isBranchExists || !isManagerExists) {
-                                if (!isManagerExists) {
-                                    err = {
-                                        code: 400,
-                                        text: `There is no managers with id : ${manager_id}`
-                                    }
-                                }
-                                if (!isBranchExists)
-                                    err = {
-                                        code: 400,
-                                        text: `There is no branches with id : ${branch_id}`
-                                    }
-                            } else {
-                                client = await clientRepo.updateclient(client_id, client_name, email, national_id, phone, facebook_link);
-                            }
+                            client = await clientRepo.updateClient(client_id, client_name, email, national_id, phone, facebook_link);
                         }
                     } catch (error) {
-                        console.log("clientController updateclient error: " + error)
+                        console.log("clientController updateClient error: " + error)
                     }
                 }
             }
@@ -147,7 +142,7 @@ const duplicateClientInfo = async (client) => {
 
 // get all client
 const getAllClients = async (token) => {
-    let err, client;
+    let err, clients;
     try {
         if (!token) {
             err = {
@@ -162,23 +157,19 @@ const getAllClients = async (token) => {
                     text: "Invalid token"
                 }
             } else {
-                const isBoss = tokenValidate.isBoss(token);
-                if (!isBoss) {
+                const isSales = tokenValidate.isSales(token);
+                if (!isSales) {
                     err = {
                         code: 403,
                         text: "You have no permissions to update client."
                     }
                 } else {
-                    client = await clientRepo.getAllclient();
+                    clients = await clientRepo.getAllClients();
                     let promises = [];
-                    client.forEach((client) => {
+                    clients.forEach((client) => {
                         promises.push(new Promise(async (resolve, reject) => {
-                            const img = await fsAsync.readFile(`img/${client.client_img}`, { encoding: 'base64' })
-                            const branch_img = await fsAsync.readFile(`img/${client.Branch.logo}`, { encoding: 'base64' })
                             const face_national_id_img = await fsAsync.readFile(`img/${client.face_national_id_img}`, { encoding: 'base64' })
                             const back_national_id_img = await fsAsync.readFile(`img/${client.back_national_id_img}`, { encoding: 'base64' })
-                            client.client_img = img;
-                            client.Branch.logo = branch_img;
                             client.face_national_id_img = face_national_id_img
                             client.back_national_id_img = back_national_id_img
                             resolve();
@@ -188,14 +179,14 @@ const getAllClients = async (token) => {
                 }
             }
         }
-        return { client, err }
     } catch (err) {
-        console.log("clientController getAllclient error: " + err)
+        console.log("clientController getAllClients error: " + err)
     }
+    return { clients, err }
 }
 
 // get client by id
-const getclientById = async (id, token) => {
+const getClientById = async (id, token) => {
     let err, client;
     try {
         if (!token) {
@@ -204,26 +195,22 @@ const getclientById = async (id, token) => {
                 text: "please attach token."
             }
         } else {
-            client = await clientRepo.getclientById(id);
+            client = await clientRepo.getClientById(id);
             if (!client) {
                 err = {
                     code: 404,
                     text: `No client with id: ${id}`
                 }
             } else {
-                const img = await fsAsync.readFile(`img/${client.client_img}`, { encoding: 'base64' })
-                const branch_img = await fsAsync.readFile(`img/${client.Branch.logo}`, { encoding: 'base64' })
                 const face_national_id_img = await fsAsync.readFile(`img/${client.face_national_id_img}`, { encoding: 'base64' })
                 const back_national_id_img = await fsAsync.readFile(`img/${client.back_national_id_img}`, { encoding: 'base64' })
-                client.client_img = img;
-                client.Branch.logo = branch_img;
                 client.face_national_id_img = face_national_id_img
                 client.back_national_id_img = back_national_id_img
             }
         }
         return { client, err }
     } catch (err) {
-        console.log("clientController getclientById error: " + err)
+        console.log("clientController getClientById error: " + err)
     }
 
 }
@@ -257,19 +244,22 @@ const updateclientImage = async (id, client_img, token) => {
                             text: "Please Attach client image."
                         }
                     } else {
-                        const existclient = await clientRepo.getclientById(id);
-                        if (!existclient) {
+                        const existClient = await clientRepo.getClientById(id);
+                        if (!existClient) {
                             err = {
                                 code: 404,
                                 text: `No clients with id: ${id}`
                             }
                         } else {
-                            const updateclient = await clientRepo.updateMangerImage(id, client_img.filename);
-                            if (updateclient) {
-                                fs.unlinkSync(`img/${existclient.client_img}`)
+                            const updateClient = await clientRepo.updateClientImage(id, client_img.filename);
+                            if (updateClient) {
+                                fs.unlinkSync(`img/${existClient.client_img}`)
                                 success = `client image updated successfully`
                             } else {
-                                fs.unlinkSync(client_img.filename)
+                                err = {
+                                    code: 500,
+                                    text: 'failed to update client image'
+                                }
                             }
                         }
 
@@ -279,13 +269,13 @@ const updateclientImage = async (id, client_img, token) => {
         }
         return { success, err }
     } catch (error) {
-        console.log("clientController updateclientImage error: " + err)
+        console.log("clientController updateClientImage error: " + err)
 
     }
 }
 
 
-const updateclientNationalImages = async (id, face_national_id_img, back_national_id_img, token) => {
+const updateClientNationalImages = async (id, face_national_id_img, back_national_id_img, token) => {
     let success, err;
     try {
         if (!token) {
@@ -314,17 +304,17 @@ const updateclientNationalImages = async (id, face_national_id_img, back_nationa
                             text: "Please Attach national-id images."
                         }
                     } else {
-                        const existclient = await clientRepo.getclientById(id);
-                        if (!existclient) {
+                        const existClient = await clientRepo.getClientById(id);
+                        if (!existClient) {
                             err = {
                                 code: 404,
                                 text: `No clients with id: ${id}`
                             }
                         } else {
-                            const updateclient = await clientRepo.updateclientNationalImages(id, face_national_id_img.filename, back_national_id_img.filename);
-                            if (updateclient) {
-                                fs.unlinkSync(`img/${existclient.face_national_id_img}`)
-                                fs.unlinkSync(`img/${existclient.back_national_id_img}`)
+                            const updateClient = await clientRepo.updateClientNationalImages(id, face_national_id_img.filename, back_national_id_img.filename);
+                            if (updateClient) {
+                                fs.unlinkSync(`img/${existClient.face_national_id_img}`)
+                                fs.unlinkSync(`img/${existClient.back_national_id_img}`)
                                 success = `client national-id images updated successfully`
                             } else {
                                 fs.unlinkSync(face_national_id_img.filename)
@@ -338,7 +328,7 @@ const updateclientNationalImages = async (id, face_national_id_img, back_nationa
         }
         return { success, err }
     } catch (error) {
-        console.log("clientController updateclientNationalImages error: " + err)
+        console.log("clientController updateClientNationalImages error: " + err)
 
     }
 }
@@ -349,14 +339,14 @@ const deleteClientById = async (id, token) => {
     try {
         let err, result;
         if (!token) {
-            console.log('token isnot esists')
+            console.log('token is not exists')
 
             err = {
                 code: 401,
                 text: "please attach token."
             }
         } else {
-            console.log('token is esists')
+            console.log('token is exists')
             const isVerify = tokenValidate.isVerify(token);
             if (!isVerify) {
                 err = {
@@ -373,7 +363,7 @@ const deleteClientById = async (id, token) => {
                 } else {
                     console.log("isBoss")
 
-                    let client = await clientRepo.getclientById(id);
+                    let client = await clientRepo.getClientById(id);
                     if (!client) {
                         err = {
                             code: 404,
@@ -383,7 +373,7 @@ const deleteClientById = async (id, token) => {
                         fs.unlinkSync(`img/${client.client_img}`)
                         fs.unlinkSync(`img/${client.face_national_id_img}`)
                         fs.unlinkSync(`img/${client.back_national_id_img}`)
-                        await clientRepo.deleteclientById(id);
+                        await clientRepo.deleteClientById(id);
                         result = `client "${client.client_name}" 's been deleted.`
                     }
                 }
@@ -391,7 +381,7 @@ const deleteClientById = async (id, token) => {
         }
         return { result, err }
     } catch (err) {
-        console.log("clientController deleteclientById error: " + err)
+        console.log("clientController deleteClientById error: " + err)
     }
 
 }
@@ -404,11 +394,11 @@ const deleteClientById = async (id, token) => {
 const clientController = {
     createNewClient,
     getAllClients,
-    getclientById,
+    getClientById,
     deleteClientById,
     updateClient,
     updateclientImage,
-    updateclientNationalImages
+    updateClientNationalImages
 }
 
 

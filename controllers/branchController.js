@@ -4,49 +4,32 @@ const fs = require('fs');
 const fsAsync = require('fs').promises;
 
 // Create new branch
-const createNewBranch = async (branch_name, branch_address, logoImg, token) => {
+const createNewBranch = async (branch_name, branch_address, logoImg) => {
     let err, new_branch;
-    const isVerify = tokenValidate.isVerify(token);
-    if (!isVerify) {
+    if (!(branch_name && branch_address && logoImg)) {
         err = {
-            code: 401,
-            text: "Invalid token"
+            code: 404,
+            text: "Please Insert All information what we need."
         }
-    } else {
-        const isBoss = tokenValidate.isBoss(token);
-        if (!isBoss) {
+        return { err };
+    }
+    try {
+        const branch = {
+            branch_name: branch_name,
+            branch_address: branch_address,
+            logo: logoImg.filename
+        }
+        const duplicateBranch = await duplicateBranchInfo(branch);
+        if (duplicateBranch) {
             err = {
-                code: 403,
-                text: "You have no permissions to delete branches."
+                code: 409,
+                text: "Duplicate information. Please Change It."
             }
         } else {
-            if (!branch_name || !branch_address || !logoImg) {
-                err = {
-                    code: 404,
-                    text: "Please Insert All information what we need."
-                }
-            } else {
-                try {
-                    const branch = {
-                        branch_name: branch_name,
-                        branch_address: branch_address,
-                        logo: logoImg.filename
-                    }
-                    const duplicateBranch = await duplicateBranchInfo(branch);
-                    if (duplicateBranch) {
-                        err = {
-                            code: 409,
-                            text: "Duplicate information. Please Change It."
-                        }
-                    } else {
-                        new_branch = await branchRepo.createNewBranch(branch);
-                    }
-                } catch (error) {
-                    console.log("branchController createNewBranch error: " + error)
-                }
-
-            }
+            new_branch = await branchRepo.createNewBranch(branch);
         }
+    } catch (error) {
+        console.log("branchController createNewBranch error: " + error)
     }
     return { new_branch, err }
 }

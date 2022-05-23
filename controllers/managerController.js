@@ -220,8 +220,8 @@ const getManagerById = async (id, token) => {
 }
 
 const updateManagerImage = async (id, manager_img, token) => {
-    let success, err;
     try {
+        let success, err;
         if (!token) {
             err = {
                 code: 401,
@@ -260,7 +260,10 @@ const updateManagerImage = async (id, manager_img, token) => {
                                 fs.unlinkSync(`img/${existManager.manager_img}`)
                                 success = `manager image updated successfully`
                             } else {
-                                fs.unlinkSync(manager_img.filename)
+                                err = {
+                                    code: 500,
+                                    text: `Failed to update manager image with id : ${id}`
+                                }
                             }
                         }
 
@@ -271,7 +274,6 @@ const updateManagerImage = async (id, manager_img, token) => {
         return { success, err }
     } catch (error) {
         console.log("managerController updateManagerImage error: " + err)
-
     }
 }
 
@@ -318,8 +320,10 @@ const updateManagerNationalImages = async (id, face_national_id_img, back_nation
                                 fs.unlinkSync(`img/${existManager.back_national_id_img}`)
                                 success = `manager national-id images updated successfully`
                             } else {
-                                fs.unlinkSync(face_national_id_img.filename)
-                                fs.unlinkSync(back_national_id_img.filename)
+                                err = {
+                                    code: 500,
+                                    text: 'Failed to update national images.'
+                                }
                             }
                         }
 
@@ -340,14 +344,14 @@ const deleteManagerById = async (id, token) => {
     try {
         let err, result;
         if (!token) {
-            console.log('token isnot esists')
+            console.log('token is not exists')
 
             err = {
                 code: 401,
                 text: "please attach token."
             }
         } else {
-            console.log('token is esists')
+            console.log('token is exists')
             const isVerify = tokenValidate.isVerify(token);
             if (!isVerify) {
                 err = {
@@ -386,8 +390,6 @@ const deleteManagerById = async (id, token) => {
     }
 
 }
-
-
 
 
 

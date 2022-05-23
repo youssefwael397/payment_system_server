@@ -90,13 +90,32 @@ const getAllSales = async () => {
     }
 }
 
+
+// get all sales
+const getAllSalesByBranchId = async (id) => {
+    try {
+        const sales = await Sales.findAll({
+            where: {
+                branch_id: id
+            },
+            include: {
+                model: Branch,
+            }
+        });
+        return sales
+    } catch (error) {
+        console.log("salesRepo getAllSales error: " + error)
+    }
+}
+
+
 // get sales by id
 const getSalesById = async (id) => {
     try {
         const sales = await Sales.findOne({
             where: { sales_id: id },
             include: {
-                model: Branch
+                model: Branch,
             }
         });
         return sales
@@ -153,6 +172,7 @@ const salesRepo = {
     checkIfSalesExists,
     getAllSales,
     getSalesById,
+    getAllSalesByBranchId,
     getSalesByEmail,
     deleteSalesById,
     updateSales,

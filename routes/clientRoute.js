@@ -46,7 +46,7 @@ router.put('/update/:client_id', upload.none(), async (req, res) => {
     const { client_id } = req.params;
     const token = req.body.token || req.headers.authorization
     try {
-        const { client, err } = await clientController.updateclient(client_id, client_name, email, national_id, phone, facebook_link, token);
+        const { client, err } = await clientController.updateClient(client_id, client_name, email, national_id, phone, facebook_link, token);
         if (err) {
             res.status(err.code).send({
                 status: 'error',
@@ -121,14 +121,14 @@ router.put('/update/national-images/:id', upload.any(), async (req, res) => {
 router.get('/', async (req, res) => {
     const token = req.body.token || req.headers.authorization
     try {
-        const { client, err } = await clientController.getAllclient(token);
+        const { clients, err } = await clientController.getAllClients(token);
         if (err) {
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text
             })
         } else {
-            res.send(client)
+            res.send(clients)
         }
     } catch (error) {
         res.status(500).send({
@@ -145,7 +145,7 @@ router.get('/:id', async (req, res) => {
     const token = req.body.token || req.headers.authorization
     const { id } = req.params;
     try {
-        const { client, err } = await clientController.getclientById(id, token);
+        const { client, err } = await clientController.getClientById(id, token);
         if (err) {
             res.status(err.code).send({
                 status: 'error',

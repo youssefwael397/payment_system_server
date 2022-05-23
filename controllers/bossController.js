@@ -1,33 +1,20 @@
 const { bossRepo } = require('../repos/bossRepo')
 const { tokenValidate } = require('./tokenValidate')
+const validateCreateBoss = require('../utils/boss/validateCreateBoss')
 const bcrypt = require('bcryptjs');
 
+
 // Create new boss 
-const createNewBoss = async (boss_name, email, password) => {
-    let err, new_boss;
+const createNewBoss = async (boss) => {
     try {
-        if (!boss_name || !email || !password) {
-            err = {
-                code: 403,
-                text: 'Missing parameters. please insert all info to create new boss'
-            }
-        } else {
-            const boss = {
-                boss_name: boss_name,
-                email: email,
-                password: bcrypt.hashSync(password, 10) // hashing password to save it to db
-            }
-            const isExist = await bossRepo.getBossByEmail(boss.email);
-            if (isExist) {
-                err = {
-                    code: 409,
-                    text: 'Duplicate information. please change it'
-                }
-            } else {
-                new_boss = await bossRepo.createNewBoss(boss);
-            }
+        const { new_boss, err } = await validateCreateBoss(boss);
+        if (err) {
+            return { err }
         }
-        return { new_boss, err }
+
+        const create_boss = await bossRepo.createNewBoss(new_boss);
+        return { create_boss }
+
     } catch (error) {
         console.log("bossController createNewBoss error: " + error)
     }

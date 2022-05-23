@@ -35,6 +35,9 @@ router.post('/create', upload.any(), async (req, res) => {
     try {
         const { new_sales, err } = await salesController.createNewSales(branch_id, manager_id, sales_name, email, password, national_id, phone, sales_img, face_national_id_img, back_national_id_img, facebook_link, token);
         if (err) {
+            fs.unlinkSync(sales_img.path)
+            fs.unlinkSync(face_national_id_img.path)
+            fs.unlinkSync(back_national_id_img.path)
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text
@@ -81,8 +84,9 @@ router.put('/update/image/:id', upload.single('image'), async (req, res) => {
     const token = req.body.token || req.headers.authorization
     const sales_img = req.file;
     try {
-        const { success, err } = await salesController.updatesalesImage(id, sales_img, token);
+        const { success, err } = await salesController.updateSalesImage(id, sales_img, token);
         if (err) {
+            fs.unlinkSync(sales_img.path)
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text
@@ -108,8 +112,10 @@ router.put('/update/national-images/:id', upload.any(), async (req, res) => {
     const face_national_id_img = images[0];
     const back_national_id_img = images[1];
     try {
-        const { success, err } = await salesController.updatesalesNationalImages(id, face_national_id_img, back_national_id_img, token);
+        const { success, err } = await salesController.updateSalesNationalImages(id, face_national_id_img, back_national_id_img, token);
         if (err) {
+            fs.unlinkSync(face_national_id_img.path)
+            fs.unlinkSync(back_national_id_img.path)
             res.status(err.code).send({
                 status: 'error',
                 "error": err.text

@@ -16,29 +16,30 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 
-// create new boss by form data 
+
+
+// create 
 router.post('/create', upload.none(), async (req, res) => {
-    const { boss_name, email, password } = req.body;
     try {
-        const { new_boss, err } = await bossController.createNewBoss(boss_name, email, password);
+        const { create_boss, err } = await bossController.createNewBoss(req.body);
         if (err) {
             res.status(err.code).send({
                 status: "error",
                 error: err.text
             })
         } else {
-            res.send(new_boss)
+            res.send(create_boss)
         }
     } catch (error) {
         res.status(403).send({
             status: "error",
-            error
+            error: error
         })
     }
 
 })
 
-// update boss by form data 
+// update 
 router.put('/update/:boss_id', upload.none(), async (req, res) => {
     const { boss_name, email } = req.body;
     const token = req.body.token || req.headers.authorization
