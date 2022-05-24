@@ -14,7 +14,7 @@ const createNewBranch = async (branch) => {
 
 
 // update branch 
-const updateBranch = async (branch_id, branch_name, branch_address) => {
+const updateBranch = async ({branch_id, branch_name, branch_address}) => {
     let updated_branch;
     try {
         await Branch.update(
