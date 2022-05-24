@@ -2,7 +2,7 @@ const { branchRepo } = require("../../repos/branchRepo");
 
 const validateUpdateBranch = async (id, branch) => {
   const { branch_name, branch_address } = branch;
-
+ 
   if (!(id && branch_name && branch_address)) {
     const err = {
       code: 403,
@@ -11,7 +11,11 @@ const validateUpdateBranch = async (id, branch) => {
     return { err };
   }
 
-  if (typeof id !== "number") {
+  const idPattern = /^\d*$/;
+  const numberValid = idPattern.test(id);
+  
+
+  if (!numberValid) {
     const err = {
       code: 403,
       text: "Please insert a valid id",
@@ -32,7 +36,6 @@ const validateUpdateBranch = async (id, branch) => {
     branch_id: id,
     branch_name: branch_name,
     branch_address: branch_address,
-    logo: logo.filename,
   };
   return { branch_data };
 };

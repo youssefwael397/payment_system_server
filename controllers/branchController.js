@@ -17,16 +17,15 @@ const createNewBranch = async (branch, logo) => {
 };
 
 // update branch info
-const updateBranch = async (id, branch ) => {
-        try {
-          const {branch_data, err} = await validateUpdateBranch(id,branch);
-          if (err) return {err}
-            const update_branch = await branchRepo.updateBranch(branch_data);
-            return update_branch;
-        } catch (error) {
-          console.log("branchController updateBranch error: " + error);
-        }
-
+const updateBranch = async (id, branch) => {
+  try {
+    const { branch_data, err } = await validateUpdateBranch(id, branch);
+    if (err) return { err };
+    const update_branch = await branchRepo.updateBranch(branch_data);
+    return {update_branch};
+  } catch (error) {
+    console.log("branchController updateBranch error: " + error);
+  }
 };
 
 // check if duplicate branch info or not
