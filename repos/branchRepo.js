@@ -36,7 +36,7 @@ const updateBranch = async ({branch_id, branch_name, branch_address}) => {
 
 
 // update branch logo img
-const updateLogoImage = async (branch_id, logo) => {
+const updateLogoImage = async ({branch_id, logo}) => {
     try {
         await Branch.update(
             {

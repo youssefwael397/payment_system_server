@@ -11,18 +11,6 @@ const validateUpdateBranch = async (id, branch) => {
     return { err };
   }
 
-  const idPattern = /^\d*$/;
-  const numberValid = idPattern.test(id);
-  
-
-  if (!numberValid) {
-    const err = {
-      code: 403,
-      text: "Please insert a valid id",
-    };
-    return { err };
-  }
-
   const ExistBranch = await branchRepo.getBranchById(id);
   if (!ExistBranch) {
     const err = {

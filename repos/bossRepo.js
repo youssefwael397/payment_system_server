@@ -40,6 +40,19 @@ const getBossById = async (id) => {
     }
 }
 
+
+
+// get boss by id
+const getBossByEmail = async (email) => {
+    try {
+        const boss = await Boss.findOne({ where: { email: email } });
+        return boss
+    } catch (error) {
+        console.log("bossRepo getBossById error: " + error)
+    }
+}
+
+
 // delete boss by id
 const deleteBossById = async (id) => {
     try {
@@ -56,6 +69,7 @@ const deleteBossById = async (id) => {
 const bossRepo = {
     createNewBoss,
     getBossById,
+    getBossByEmail,
     deleteBossById,
     updateBoss
 }
