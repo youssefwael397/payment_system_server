@@ -1,6 +1,8 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 let smtpTransport = require('nodemailer-smtp-transport');
+const auth = require('../middleware/auth')
+const boss = require('../middleware/boss')
 const router = express.Router();
 const { bossController } = require('../controllers/bossController')
 const jwt = require('jsonwebtoken');
@@ -31,42 +33,46 @@ router.post('/create', upload.none(), async (req, res) => {
             res.send(create_boss)
         }
     } catch (error) {
-        res.status(403).send({
+        console.log(error)
+        res.status(500).send({
             status: "error",
-            error: error
+            error: 'Internal Server Error'
         })
     }
 
 })
 
+
+
 // update 
-router.put('/update/:boss_id', upload.none(), async (req, res) => {
-    const { boss_name, email } = req.body;
-    const token = req.body.token || req.headers.authorization
-    const { boss_id } = req.params
+router.put('/update/', auth, boss, upload.none(), async (req, res) => {
     try {
-        const { new_boss, err } = await bossController.updateBoss(boss_id, boss_name, email, token);
+        const token = req.body.token || req.headers.authorization
+        const { update_boss, err } = await bossController.updateBoss(req.body, token);
         if (err) {
             res.status(err.code).send({
                 status: "error",
                 error: err.text
             })
         } else {
-            res.send(new_boss)
+            res.send(update_boss)
         }
     } catch (error) {
-        res.status(403).send({
+        console.log(error)
+        res.status(500).send({
             status: "error",
-            error
+            error: 'Internal Server Error'
         })
     }
 
 })
 
+
 // get boss by id as params
-router.get('/:id', async (req, res) => {
+router.get('/', auth, boss, async (req, res) => {
     try {
-        const { boss, err } = await bossController.getBossById(req.params.id);
+        const token = req.body.token || req.headers.authorization
+        const { boss, err } = await bossController.getBossById(token);
         if (err) {
             res.status(err.code).send({
                 status: "error",
@@ -75,18 +81,20 @@ router.get('/:id', async (req, res) => {
         }
         res.send(boss)
     } catch (error) {
-        res.status(403).send({
+        console.log(error)
+        res.status(500).send({
             status: "error",
-            error
+            error: 'Internal Server Error'
         })
     }
 
 })
 
 // delete boss by id as params
-router.delete('/:id', async (req, res) => {
+router.delete('/', auth, boss, async (req, res) => {
     try {
-        const { result, err } = await bossController.deleteBossById(req.params.id);
+        const token = req.body.token || req.headers.authorization
+        const { result, err } = await bossController.deleteBossById(token);
         if (err) {
             res.status(err.code).send({
                 status: "error",
@@ -95,9 +103,10 @@ router.delete('/:id', async (req, res) => {
         }
         res.send(result)
     } catch (error) {
-        res.status(403).send({
+        console.log(error)
+        res.status(500).send({
             status: "error",
-            error
+            error: 'Internal Server Error'
         })
     }
 

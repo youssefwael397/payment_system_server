@@ -1,8 +1,5 @@
 // imports
-const { Boss, Sequelize, sequelize } = require('../models/index')
-const fs = require('fs');
-const jwt = require('jsonwebtoken');
-const op = Sequelize.Op;
+const { Boss } = require('../models/index')
 
 // Create new boss 
 const createNewBoss = async (boss) => {
@@ -43,27 +40,13 @@ const getBossById = async (id) => {
     }
 }
 
-
-// get boss by email
-const getBossByEmail = async (email) => {
-    try {
-        const boss = await Boss.findOne({ where: { email: email } });
-        return boss
-    } catch (error) {
-        console.log("bossRepo getBossByEmail error: " + error)
-    }
-}
-
-
 // delete boss by id
 const deleteBossById = async (id) => {
     try {
         const boss = await Boss.destroy({ where: { boss_id: id } });
-        if (boss) {
-            return true
-        } else {
-            return false
-        }
+        if (boss) return true
+        else return false
+
     } catch (error) {
         console.log("bossRepo deleteBossById error: " + error)
     }
@@ -73,7 +56,6 @@ const deleteBossById = async (id) => {
 const bossRepo = {
     createNewBoss,
     getBossById,
-    getBossByEmail,
     deleteBossById,
     updateBoss
 }

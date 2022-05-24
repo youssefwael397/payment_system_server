@@ -1,16 +1,15 @@
 const { bossRepo } = require('../repos/bossRepo')
-const { tokenValidate } = require('./tokenValidate')
 const validateCreateBoss = require('../utils/boss/validateCreateBoss')
-const bcrypt = require('bcryptjs');
+const validateUpdateBoss = require('../utils/boss/validateUpdateBoss')
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
+const jwt_encrypt = process.env.JWT_ENCRYPT;
 
-
-// Create new boss 
+// Create
 const createNewBoss = async (boss) => {
     try {
         const { new_boss, err } = await validateCreateBoss(boss);
-        if (err) {
-            return { err }
-        }
+        if (err) return { err }
 
         const create_boss = await bossRepo.createNewBoss(new_boss);
         return { create_boss }
@@ -20,94 +19,57 @@ const createNewBoss = async (boss) => {
     }
 }
 
-// update boss 
-const updateBoss = async (boss_id, boss_name, email, token) => {
-    let err, new_boss;
+// update by token
+const updateBoss = async (boss, token) => {
     try {
-        if (!token) {
-            err = {
-                code: 401,
-                text: 'please attach token.'
-            }
-        } else {
-            if (!tokenValidate.isBoss) {
-                err = {
-                    code: 401,
-                    text: 'you have no permissions to update boss info.'
-                }
-            } else {
-                if (!boss_name || !email) {
-                    err = {
-                        code: 403,
-                        text: 'Missing parameters. please insert all info to create new boss'
-                    }
-                } else {
-                    const boss = {
-                        boss_id: boss_id,
-                        boss_name: boss_name,
-                        email: email,
-                    }
-                    const isExist = await bossRepo.getBossById(boss_id);
-                    if (!isExist) {
-                        err = {
-                            code: 400,
-                            text: `no boss with id: ${boss_id}`
-                        }
-                    } else {
-                        new_boss = await bossRepo.updateBoss(boss);
-                    }
-                }
-            }
-        }
+        const { new_boss, err } = await validateUpdateBoss(boss, token);
+        if (err) return { err }
+
+        const update_boss = await bossRepo.updateBoss(new_boss);
+        return { update_boss }
+
     } catch (error) {
         console.log("bossController updateBoss error: " + error)
     }
     return { new_boss, err }
 }
 
-
-// get boss by id
-const getBossById = async (id) => {
-    let boss, err;
+// get by token
+const getBossById = async (token) => {
     try {
-        boss = await bossRepo.getBossById(id)
+        const { id } = jwt.decode(token, jwt_encrypt);
+        const boss = await bossRepo.getBossById(id)
         if (!boss) {
-            err = {
+            const err = {
                 code: 404,
-                text: `no boss with id ${id}`
+                text: `No boss with id : ${id}`
             }
+            return { err }
         }
-        return { boss, err }
+        return { boss }
     } catch (error) {
         console.log("bossController getBossById error: " + error)
     }
 }
 
-
-// get boss by email
-const getBossByEmail = async (email) => {
+// delete by token
+const deleteBossById = async (token) => {
     try {
-        const boss = await bossRepo.getBossById(email)
-        return boss
-    } catch (error) {
-        console.log("bossController getBossByEmail error: " + error)
-    }
-}
-
-// delete boss by id
-const deleteBossById = async (id) => {
-    let err, result;
-    try {
-        const boss = await bossRepo.deleteBossById(id);
+        const { id, name } = jwt.decode(token, jwt_encrypt);
+        const boss = await bossRepo.getBossById(id)
         if (!boss) {
-            err = {
+            const err = {
                 code: 404,
-                text: `No boss with id: ${id}`
+                text: `No boss with id : ${id}`
             }
-        } else {
-            result = `boss with id: ${id} deleted successfully`
+            return { err }
         }
-        return { result, err }
+        await bossRepo.deleteBossById(id)
+        const result = {
+            code: 404,
+            text: `Boss "${name}" deleted successfully`
+        }
+        return { result }
     } catch (error) {
         console.log("bossController deleteBossById error: " + error)
     }
@@ -118,7 +80,6 @@ const deleteBossById = async (id) => {
 const bossController = {
     createNewBoss,
     getBossById,
-    getBossByEmail,
     deleteBossById,
     updateBoss
 }

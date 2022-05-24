@@ -1,7 +1,6 @@
 const { productRepo } = require('../repos/productRepo')
 const { branchRepo } = require('../repos/branchRepo')
 const { categoryRepo } = require('../repos/categoryRepo')
-const { tokenValidate } = require('./tokenValidate')
 const fs = require('fs');
 
 // Create new Product

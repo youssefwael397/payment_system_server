@@ -1,6 +1,5 @@
 const { categoryRepo } = require('../repos/categoryRepo')
 const { branchRepo } = require('../repos/branchRepo')
-const { tokenValidate } = require('./tokenValidate')
 const fs = require('fs');
 
 // Create new category
