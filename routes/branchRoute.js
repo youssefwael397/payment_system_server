@@ -8,7 +8,6 @@ const router = express.Router();
 const { branchController } = require("../controllers/branchController");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-const validateId = require("../middleware/validateId");
 const storage = multer.diskStorage({
   destination: "./img",
   filename: function (req, file, cb) {
@@ -44,43 +43,35 @@ router.post("/create", auth, boss, upload.single("logo"), async (req, res) => {
 });
 
 // update
-router.put(
-  "/update/:id",
-  auth,
-  boss,
-  validateId,
-  upload.none(),
-  async (req, res) => {
-    const { id } = req.params;
-    try {
-      const { update_branch, err } = await branchController.updateBranch(
-        id,
-        req.body
-      );
-      if (err) {
-        res.status(err.code).send({
-          status: "error",
-          error: err.text,
-        });
-      } else {
-        res.send(update_branch);
-      }
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({
+router.put("/update/:id", auth, boss, upload.none(), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { update_branch, err } = await branchController.updateBranch(
+      id,
+      req.body
+    );
+    if (err) {
+      res.status(err.code).send({
         status: "error",
-        error: "Internal Server Error",
+        error: err.text,
       });
+    } else {
+      res.send(update_branch);
     }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      error: "Internal Server Error",
+    });
   }
-);
+});
 
 // update logo image
 router.put(
   "/update/image/:id",
   auth,
   boss,
-  validateId,
   upload.single("logo"),
   async (req, res) => {
     try {
@@ -119,7 +110,7 @@ router.get("/", auth, async (req, res) => {
 });
 
 // get by id
-router.get("/:id", auth, validateId, async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { branch, err } = await branchController.getBranchById(id);
@@ -140,7 +131,7 @@ router.get("/:id", auth, validateId, async (req, res) => {
 });
 
 // delete branch by id
-router.delete("/:id", auth, boss, validateId, async (req, res) => {
+router.delete("/:id", auth, boss, async (req, res) => {
   try {
     const { id } = req.params;
     const { result, err } = await branchController.deleteBranchById(id);

@@ -6,7 +6,6 @@ const router = express.Router();
 const { managerController } = require("../controllers/managerController");
 const auth = require("../middleware/auth");
 const boss = require("../middleware/boss");
-const validateId = require("../middleware/validateId");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const storage = multer.diskStorage({

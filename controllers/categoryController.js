@@ -1,120 +1,103 @@
 const { categoryRepo } = require("../repos/categoryRepo");
 const { branchRepo } = require("../repos/branchRepo");
 const fs = require("fs");
+const validateNumber = require("../utils/validateNumber");
 
 // Create new category
-const createNewCategory = async ({ category_name, branch_id }, token) => {
-  let err, new_category;
-  if (!category_name || !branch_id) {
-    err = {
-      code: 404,
-      text: "Please Insert category name.",
-    };
-  } else {
-    try {
-      const isExistBranch = await branchRepo.getBranchById(branch_id);
-      if (!isExistBranch) {
-        err = {
-          code: 404,
-          text: `No branches with id : ${branch_id}`,
-        };
-      } else {
-        const category = {
-          category_name: category_name,
-          branch_id: branch_id,
-        };
-        const duplicateCategory = await duplicateCategoryInfo(category);
-        if (duplicateCategory) {
-          err = {
-            code: 409,
-            text: "Duplicate information. Please Change It.",
-          };
-        } else {
-          new_category = await categoryRepo.createNewCategory(category);
-        }
-      }
-    } catch (error) {
-      console.log("categoryController createNewCategory error: " + error);
+const createNewCategory = async ({ category_name, branch_id }) => {
+  try {
+    if (!category_name || !branch_id) {
+      const err = {
+        code: 404,
+        text: "All inputs are required.",
+      };
+      return { err };
     }
+
+    const { err } = validateNumber(branch_id);
+    if (err) return { err };
+
+    const isExistBranch = await branchRepo.getBranchById(branch_id);
+    if (!isExistBranch) {
+      const err = {
+        code: 404,
+        text: `No branches with id : ${branch_id}`,
+      };
+      return { err };
+    }
+
+    const category_data = {
+      category_name: category_name,
+      branch_id: branch_id,
+    };
+
+    const category_exist = await categoryRepo.checkIfCategoryExists(
+      category_data
+    );
+    if (category_exist) {
+      const err = {
+        code: 409,
+        text: "This Category is already exist",
+      };
+      return { err };
+    }
+
+    const new_category = await categoryRepo.createNewCategory(category_data);
+    return { new_category };
+  } catch (error) {
+    console.log("categoryController createNewCategory error: " + error);
   }
-  return { new_category, err };
 };
 
 // update category info
-const updateCategory = async (category_id, category_name, token) => {
-  let err, category;
-  if (!token) {
-    err = {
-      code: 401,
-      text: "Invalid token",
-    };
-  } else {
-    const isValid = tokenValidate.isVerify(token);
-    if (!isValid) {
-      err = {
-        code: 401,
-        text: "Invalid token",
+const updateCategory = async (category_id, category_name) => {
+  try {
+    if (!category_id || !category_name) {
+      const err = {
+        code: 404,
+        text: "Please Insert All information what we need.",
       };
-    } else {
-      const isManager = tokenValidate.isManager(token);
-      if (!isManager) {
-        err = {
-          code: 403,
-          text: "You have no permissions to update categories.",
-        };
-      } else {
-        if (!category_id || !category_name) {
-          err = {
-            code: 404,
-            text: "Please Insert All information what we need.",
-          };
-        } else {
-          try {
-            const existCategory = await categoryRepo.getCategoryById(
-              category_id
-            );
-            if (!existCategory) {
-              err = {
-                code: 404,
-                text: `No categories with id: ${category_id}`,
-              };
-            } else {
-              const updateCategory = await categoryRepo.updateCategory(
-                category_id,
-                category_name
-              );
-              category = updateCategory;
-            }
-          } catch (error) {
-            console.log("categoryController updateCategory error: " + error);
-          }
-        }
-      }
+      return { err };
     }
+
+    const { err } = validateNumber(category_id);
+    if (err) return { err };
+
+    const existCategory = await categoryRepo.getCategoryById(category_id);
+    if (!existCategory) {
+      const err = {
+        code: 404,
+        text: `No categories with id: ${category_id}`,
+      };
+      return { err };
+    }
+
+    const category = await categoryRepo.updateCategory(
+      category_id,
+      category_name
+    );
+    return { category };
+  } catch (error) {
+    console.log("categoryController updateCategory error: " + error);
   }
   return { category, err };
-};
-
-// check if duplicate category info or not
-const duplicateCategoryInfo = async (category) => {
-  const isExists = await categoryRepo.checkIfCategoryExists(category);
-  return isExists;
 };
 
 // get all categories
 const getAllCategoriesByBranchId = async (id) => {
   try {
-    let err, categories;
+    const { err } = validateNumber(id);
+    if (err) return { err };
     const isBranchExist = await branchRepo.getBranchById(id);
     if (!isBranchExist) {
-      err = {
+      const err = {
         code: 400,
         text: `no branch with id: ${id}`,
       };
-    } else {
-      categories = await categoryRepo.getAllCategoriesByBranchId(id);
+      return { err };
     }
-    return { categories, err };
+    const categories = await categoryRepo.getAllCategoriesByBranchId(id);
+    return { categories };
   } catch (err) {
     console.log("categoryController getAllCategoriesByBranchId error: " + err);
   }
@@ -122,59 +105,40 @@ const getAllCategoriesByBranchId = async (id) => {
 
 // get category by id
 const getCategoryById = async (id) => {
-  let err;
   try {
+    const { err } = validateNumber(id);
+    if (err) return { err };
     let category = await categoryRepo.getCategoryById(id);
     if (!category) {
-      err = {
+      const err = {
         code: 404,
         text: `No categories with id: ${id}`,
       };
+      return { err };
     }
-    return { category, err };
+    return { category };
   } catch (err) {
     console.log("categoryController getCategoryById error: " + err);
   }
 };
 
 // delete category by id
-const deleteCategoryById = async (id, token) => {
+const deleteCategoryById = async (id) => {
   try {
-    let err, result;
-    if (!token) {
-      err = {
-        code: 401,
-        text: "please attach token.",
+    const { err } = validateNumber(id);
+    if (err) return { err };
+
+    let category = await categoryRepo.getCategoryById(id);
+    if (!category) {
+      const err = {
+        code: 404,
+        text: `No categories with id: ${id}`,
       };
-    } else {
-      const isVerify = tokenValidate.isVerify(token);
-      if (!isVerify) {
-        err = {
-          code: 401,
-          text: "Invalid token",
-        };
-      } else {
-        const isManager = tokenValidate.isManager(token);
-        if (!isManager) {
-          err = {
-            code: 403,
-            text: "You have no permissions to delete categories.",
-          };
-        } else {
-          let category = await categoryRepo.getCategoryById(id);
-          if (!category) {
-            err = {
-              code: 404,
-              text: `No categories with id: ${id}`,
-            };
-          } else {
-            await categoryRepo.deleteCategoryById(id);
-            result = `category "${category.category_name}" 's been deleted.`;
-          }
-        }
-      }
+      return { err };
     }
-    return { result, err };
+    await categoryRepo.deleteCategoryById(id);
+    const result = `category "${category.category_name}" 's been deleted.`;
+    return { result };
   } catch (err) {
     console.log("categoryController deleteCategoryById error: " + err);
   }
