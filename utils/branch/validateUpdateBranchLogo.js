@@ -6,7 +6,7 @@ const validateUpdateBranchLogo = async (id, logo) => {
   if (!logo) {
     const err = {
       code: 403,
-      text: "All inputs are required.",
+      text: "Please Attach logo.",
     };
     return { err };
   }

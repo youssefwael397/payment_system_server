@@ -14,7 +14,7 @@ const createNewManager = async (manager) => {
 
 
 // update manager info
-const updateManager = async (manager_id, manager_name, email, national_id, phone, facebook_link) => {
+const updateManager = async ({manager_id, manager_name, email, national_id, phone, facebook_link}) => {
     let updated_manager;
     try {
         await Manager.update(
@@ -35,11 +35,11 @@ const updateManager = async (manager_id, manager_name, email, national_id, phone
 
 
 // update manager logo img
-const updateMangerImage = async (manager_id, image) => {
+const updateMangerImage = async ({manager_id, manager_img}) => {
     try {
         await Manager.update(
             {
-                manager_img: image
+                manager_img: manager_img
             },
             {
                 where: { manager_id: manager_id }
@@ -56,7 +56,7 @@ const updateMangerImage = async (manager_id, image) => {
 
 
 // update manager national imgs
-const updateManagerNationalImages = async (id, face_national_id_img, back_national_id_img) => {
+const updateManagerNationalImages = async ({manager_id, face_national_id_img, back_national_id_img}) => {
     try {
         await Manager.update(
             {
@@ -64,7 +64,7 @@ const updateManagerNationalImages = async (id, face_national_id_img, back_nation
                 back_national_id_img: back_national_id_img
             },
             {
-                where: { manager_id: id }
+                where: { manager_id: manager_id }
             }
         );
         let updated_manager = await Manager.findOne({ where: { manager_id: id } })
@@ -84,7 +84,6 @@ const getAllManagers = async () => {
             include: {
                 model: Branch
             }
-
         });
         return managers
     } catch (error) {

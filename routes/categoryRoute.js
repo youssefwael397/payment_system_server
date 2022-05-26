@@ -6,6 +6,8 @@ const router = express.Router();
 const { categoryController } = require('../controllers/categoryController')
 const jwt = require('jsonwebtoken');
 const multer = require('multer')
+const auth = require('../middleware/auth')
+const manager = require('../middleware/manager')
 const storage = multer.diskStorage({
     destination: './img',
     filename: function (req, file, cb) {
@@ -16,11 +18,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 
 // create new category by form data 
-router.post('/create', upload.none(), async (req, res) => {
-    const { category_name, branch_id } = req.body;
-    const token = req.body.token || req.headers.authorization;
+router.post('/create',auth, manager, upload.none(), async (req, res) => {
     try {
-        const { new_category, err } = await categoryController.createNewCategory(category_name, branch_id, token);
+        const { new_category, err } = await categoryController.createNewCategory(req.body, token);
         if (err) {
             res.status(err.code).send({
                 status: 'error',
@@ -39,10 +39,9 @@ router.post('/create', upload.none(), async (req, res) => {
 })
 
 // update category by form data 
-router.put('/update/:category_id', upload.none(), async (req, res) => {
+router.put('/update/:category_id',auth, manager, upload.none(), async (req, res) => {
     const { category_name } = req.body;
     const { category_id } = req.params;
-    const token = req.body.token || req.headers.authorization
     try {
         const { category, err } = await categoryController.updateCategory(category_id, category_name, token);
         if (err) {
@@ -63,7 +62,7 @@ router.put('/update/:category_id', upload.none(), async (req, res) => {
 })
 
 // get all categories by branch id
-router.get('/branch/:id', async (req, res) => {
+router.get('/branch/:id',auth, manager, async (req, res) => {
     const { id } = req.params
     try {
         const { categories, err } = await categoryController.getAllCategoriesByBranchId(id);
@@ -82,7 +81,7 @@ router.get('/branch/:id', async (req, res) => {
 })
 
 // get category by id
-router.get('/:id', async (req, res) => {
+router.get('/:id',auth, manager, async (req, res) => {
     const { id } = req.params
     try {
         const { category, err } = await categoryController.getCategoryById(id);
@@ -106,7 +105,7 @@ router.get('/:id', async (req, res) => {
 
 
 // delete category by id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id',auth, manager, async (req, res) => {
     const token = req.body.token || req.headers.authorization
     const { id } = req.params;
     try {
