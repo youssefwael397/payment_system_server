@@ -13,7 +13,7 @@ const createNewProduct = async (product) => {
 }
 
 // update Product 
-const updateProduct = async (product_id, product_name, product_price, count) => {
+const updateProduct = async (product_id, { product_name, product_price, count}) => {
     try {
         await Product.update({
             product_name: product_name,
