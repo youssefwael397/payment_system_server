@@ -14,7 +14,7 @@ const createNewClient = async (client) => {
 
 
 // update client info
-const updateClient = async (client_id, client_name, email, national_id, phone, facebook_link) => {
+const updateClient = async (client_id, {client_name, email, national_id, phone, facebook_link}) => {
     let updated_client;
     try {
         await Client.update(

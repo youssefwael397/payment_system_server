@@ -1,191 +1,160 @@
-const express = require('express');
-const fs = require('fs');
-const nodemailer = require('nodemailer');
-let smtpTransport = require('nodemailer-smtp-transport');
+const express = require("express");
+const auth = require("../middleware/auth");
+const sales = require("../middleware/sales");
+const manager = require("../middleware/manager");
+const fs = require("fs");
+const nodemailer = require("nodemailer");
+let smtpTransport = require("nodemailer-smtp-transport");
 const router = express.Router();
-const { clientController } = require('../controllers/clientController')
-const jwt = require('jsonwebtoken');
-const multer = require('multer')
+const { clientController } = require("../controllers/clientController");
+const jwt = require("jsonwebtoken");
+const multer = require("multer");
 const storage = multer.diskStorage({
-    destination: './img',
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-        cb(null, file.fieldname + '-' + uniqueSuffix + '.png')
+  destination: "./img",
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ".png");
+  },
+});
+const upload = multer({ storage: storage });
+
+// create new client by form data
+router.post("/create", auth, sales, upload.any(), async (req, res) => {
+  const images = req.files;
+  try {
+    const { new_client, err } = await clientController.createNewClient(
+      req.body,
+      images
+    );
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(new_client);
     }
-})
-const upload = multer({ storage: storage })
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
 
-// create new client by form data 
-router.post('/create', upload.any(), async (req, res) => {
-    const token = req.body.token || req.headers.authorization
-    const images = req.files;
-    const face_national_id_img = images[0];
-    const back_national_id_img = images[1];
-    try {
-        const { new_client, err } = await clientController.createNewClient(req.body, face_national_id_img, back_national_id_img, token);
-        if (err) {
-            res.status(err.code).send({
-                status: 'error',
-                "error": err.text
-            })
-        } else {
-            res.send(new_client)
-        }
-    } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
-    }
-
-})
-
-// update client by form data 
-router.put('/update/:client_id', upload.none(), async (req, res) => {
-    const { client_name, email, national_id, phone, facebook_link } = req.body;
+// update client by form data
+router.put(
+  "/update/:client_id",
+  auth,
+  manager,
+  upload.none(),
+  async (req, res) => {
     const { client_id } = req.params;
-    const token = req.body.token || req.headers.authorization
     try {
-        const { client, err } = await clientController.updateClient(client_id, client_name, email, national_id, phone, facebook_link, token);
-        if (err) {
-            res.status(err.code).send({
-                status: 'error',
-                "error": err.text
-            })
-        } else {
-            res.send(client)
-        }
+      const { update_client, err } = await clientController.updateClient(
+        client_id,
+        req.body
+      );
+      if (err) {
+        res.status(err.code).send({
+          status: "error",
+          error: err.text,
+        });
+      } else {
+        res.send(update_client);
+      }
     } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
+      res.status(500).send({
+        status: "error",
+        error,
+      });
     }
+  }
+);
 
-})
-
-// update client image by form data 
-router.put('/update/image/:id', upload.single('image'), async (req, res) => {
-    const { id } = req.params
-    const token = req.body.token || req.headers.authorization
-    const client_img = req.file;
-    try {
-        const { success, err } = await clientController.updateclientImage(id, client_img, token);
-        if (err) {
-            res.status(err.code).send({
-                status: 'error',
-                "error": err.text
-            })
-        } else {
-            res.send(success)
-        }
-    } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
-    }
-
-})
-
-
-// update client national id images by form data 
-router.put('/update/national-images/:id', upload.any(), async (req, res) => {
-    const { id } = req.params
-    const token = req.body.token || req.headers.authorization
+// update client national id images by form data
+router.put(
+  "/update/national-images/:id",
+  auth,
+  manager,
+  upload.any(),
+  async (req, res) => {
+    const { id } = req.params;
     const images = req.files;
-    const face_national_id_img = images[0];
-    const back_national_id_img = images[1];
     try {
-        const { success, err } = await clientController.updateclientNationalImages(id, face_national_id_img, back_national_id_img, token);
-        if (err) {
-            res.status(err.code).send({
-                status: 'error',
-                "error": err.text
-            })
-        } else {
-            res.send(success)
-        }
+      const { success, err } =
+        await clientController.updateClientNationalImages(id, images);
+      if (err) {
+        res.status(err.code).send({
+          status: "error",
+          error: err.text,
+        });
+      } else {
+        res.send(success);
+      }
     } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
+      res.status(500).send({
+        status: "error",
+        error,
+      });
     }
-
-})
-
-
+  }
+);
 
 // get all client
-router.get('/', async (req, res) => {
-    const token = req.body.token || req.headers.authorization
-    try {
-        const { clients, err } = await clientController.getAllClients(token);
-        if (err) {
-            res.status(err.code).send({
-                status: 'error',
-                "error": err.text
-            })
-        } else {
-            res.send(clients)
-        }
-    } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
-    }
-
-})
-
+router.get("/",auth, async (req, res) => {
+  try {
+    const { clients } = await clientController.getAllClients();
+    res.send(clients);
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
 
 // get client by id
-router.get('/:id', async (req, res) => {
-    const token = req.body.token || req.headers.authorization
-    const { id } = req.params;
-    try {
-        const { client, err } = await clientController.getClientById(id, token);
-        if (err) {
-            res.status(err.code).send({
-                status: 'error',
-                "error": err.text
-            })
-        } else {
-            res.send(client)
-        }
-    } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
+router.get("/:id",auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { client, err } = await clientController.getClientById(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(client);
     }
-
-})
-
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
 
 // delete client by id
-router.delete('/:id', async (req, res) => {
-    try {
-        const token = req.body.token || req.headers.authorization
-        const { id } = req.params;
-        const { result, err } = await clientController.deleteclientById(id, token);
-        if (err) {
-            res.status(err.code).send({
-                status: "error",
-                error: err.text
-            })
-        } else {
-            res.send(result)
-        }
-    } catch (error) {
-        res.status(500).send({
-            status: "error",
-            error
-        })
+router.delete("/:id", async (req, res) => {
+  try {
+    const token = req.body.token || req.headers.authorization;
+    const { id } = req.params;
+    const { result, err } = await clientController.deleteclientById(id, token);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(result);
     }
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
 
-})
-
-
-module.exports = router
+module.exports = router;
