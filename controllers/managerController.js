@@ -178,7 +178,7 @@ const deleteManagerById = async (id) => {
     if (!manager) {
       const err = {
         code: 404,
-        text: `No managers with id: ${id}`,
+        text: `No managers with id: ${id}`
       };
       return { err };
     }
@@ -186,7 +186,7 @@ const deleteManagerById = async (id) => {
     fs.unlinkSync(`img/${manager.face_national_id_img}`);
     fs.unlinkSync(`img/${manager.back_national_id_img}`);
     await managerRepo.deleteManagerById(id);
-    result = `manager "${manager.manager_name}" 's been deleted.`;
+    const result = `manager "${manager.manager_name}" 's been deleted.`;
 
     return { result };
   } catch (err) {

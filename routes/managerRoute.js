@@ -20,7 +20,6 @@ const upload = multer({ storage: storage });
 // create new manager by form data
 router.post("/create", auth, boss, upload.any(), async (req, res) => {
   try {
-    console.log("create new manager");
     const images = req.files;
     const { new_manager, err } = await managerController.createNewManager(
       req.body,
@@ -76,7 +75,6 @@ router.put(
   async (req, res) => {
     const { id } = req.params;
     const manager_img = req.file;
-    console.log(manager_img);
     try {
       const { success, err } = await managerController.updateManagerImage(
         id,

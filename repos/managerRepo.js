@@ -67,7 +67,7 @@ const updateManagerNationalImages = async ({manager_id, face_national_id_img, ba
                 where: { manager_id: manager_id }
             }
         );
-        let updated_manager = await Manager.findOne({ where: { manager_id: id } })
+        let updated_manager = await Manager.findOne({ where: { manager_id: manager_id } })
         return updated_manager
 
     } catch (error) {

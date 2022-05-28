@@ -14,7 +14,7 @@ const createNewSales = async (sales) => {
 
 
 // update sales info
-const updateSales = async (sales_id, sales_name, email, national_id, phone, facebook_link) => {
+const updateSales = async ({sales_id, sales_name, email, national_id, phone, facebook_link}) => {
     let updated_sales;
     try {
         await Sales.update(
