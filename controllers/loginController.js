@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 
 const login = async (email, password) => {
     let err, login_token, isBoss = false, isManager = false, isSales = false;
+
     const boss = await bossRepo.getBossByEmail(email);
     const manager = await managerRepo.getManagerByEmail(email);
     const sales = await salesRepo.getSalesByEmail(email);
@@ -18,7 +19,7 @@ const login = async (email, password) => {
     if (!boss && !manager && !sales) {
         err = {
             code: 404,
-            text: "This email is not found."
+            text: "يرجى التأكد من البريد الإلكتروني"
         }
     } else {
         if (boss) {
@@ -33,7 +34,7 @@ const login = async (email, password) => {
         if (!isBoss && !isManager && !isSales) {
             err = {
                 code: 401,
-                text: "Bad credentials. Please Try Again..."
+                text: "كلمة المرور غير صحيحة"
             }
         } else {
             if (boss) {

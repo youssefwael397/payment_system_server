@@ -2,7 +2,6 @@ const express = require("express");
 const fs = require("fs");
 const auth = require("../middleware/auth");
 const sales = require("../middleware/sales");
-const createProcess = require("../middleware/process/createProcess");
 let smtpTransport = require("nodemailer-smtp-transport");
 const router = express.Router();
 const { processController } = require("../controllers/processController");

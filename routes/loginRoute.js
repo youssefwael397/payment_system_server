@@ -16,7 +16,10 @@ router.post('/', upload.none(), async (req, res) => {
             })
 
         } else {
-            res.send(login_token)
+            res.send({
+                status:'ok',
+                token: login_token
+            })
         }
 
     } catch (error) {

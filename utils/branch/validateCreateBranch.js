@@ -26,7 +26,7 @@ const validateCreateBranch = async (branch, logo) => {
   if (ExistBranch) {
     const err = {
       code: 409,
-      text: "This Branch is already exist.",
+      text: "هذا الفرع موجود بالفعل",
     };
     fs.unlinkSync(logo.path);
     return { err };

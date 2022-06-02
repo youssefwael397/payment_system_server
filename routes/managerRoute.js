@@ -142,7 +142,7 @@ router.get("/", auth, boss, async (req, res) => {
 });
 
 // get manager by id
-router.get("/:id", auth, boss, async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   const { id } = req.params;
   try {
     const { manager, err } = await managerController.getManagerById(id);
