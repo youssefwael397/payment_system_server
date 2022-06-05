@@ -11,7 +11,7 @@ const validateCreateManager = async (manager, images) => {
   if (!(manager_img && face_national_id_img && back_national_id_img)) {
     const err = {
       code: 403,
-      text: "Please attach images",
+      text: "من فضلك ادخل الصور المطلوبة",
     };
     return { err };
   }
@@ -39,7 +39,7 @@ const validateCreateManager = async (manager, images) => {
   ) {
     const err = {
       code: 403,
-      text: "All inputs are required.",
+      text: "كل الحقول مطلوبة",
     };
     fs.unlinkSync(manager_img.path);
     fs.unlinkSync(face_national_id_img.path);
@@ -74,11 +74,23 @@ const validateCreateManager = async (manager, images) => {
     return { err };
   }
 
+  const branchHasManager = await managerRepo.branchHasManager(branch_id);
+  if(branchHasManager){
+    const err = {
+      code: 409,
+      text: `هذا الفرع يديره ${branchHasManager.manager_name} بالفعل`,
+    };
+    fs.unlinkSync(manager_img.path);
+    fs.unlinkSync(face_national_id_img.path);
+    fs.unlinkSync(back_national_id_img.path);
+    return { err };
+  }
+
   const ExistManager = await managerRepo.checkIfManagerExists(manager);
   if (ExistManager) {
     const err = {
       code: 409,
-      text: "This Manager is already exist.",
+      text: "هذا المدير موجود بالفعل",
     };
     fs.unlinkSync(manager_img.path);
     fs.unlinkSync(face_national_id_img.path);

@@ -37,7 +37,7 @@ const createNewCategory = async ({ category_name, branch_id }) => {
     if (category_exist) {
       const err = {
         code: 409,
-        text: "This Category is already exist",
+        text: "هذا التصنيف موجود بالفعل",
       };
       return { err };
     }

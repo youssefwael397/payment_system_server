@@ -24,7 +24,7 @@ const validateCreateBranch = async (sales, images) => {
   if (!sales_img || !face_national_id_img || !back_national_id_img) {
     const err = {
       code: 404,
-      text: "Please attach sales images.",
+      text: "من فضلك ادخل الصور المطلوبة",
     };
     return { err };
   }
@@ -41,7 +41,7 @@ const validateCreateBranch = async (sales, images) => {
   ) {
     const err = {
       code: 404,
-      text: "All inputs are required.",
+      text: "كل الحقول مطلوبة",
     };
     fs.unlinkSync(sales_img.path);
     fs.unlinkSync(face_national_id_img.path);
@@ -80,7 +80,7 @@ const validateCreateBranch = async (sales, images) => {
   if (salesExists) {
     const err = {
       code: 409,
-      text: "This Sales is already exists.",
+      text: "هذا المندوب موجود بالفعل",
     };
     fs.unlinkSync(sales_img.path);
     fs.unlinkSync(face_national_id_img.path);
@@ -97,7 +97,7 @@ const validateCreateBranch = async (sales, images) => {
     fs.unlinkSync(sales_img.path);
     fs.unlinkSync(face_national_id_img.path);
     fs.unlinkSync(back_national_id_img.path);
-    return {err}
+    return { err };
   }
 
   const isBranchExist = await branchRepo.getBranchById(branch_id);
@@ -109,7 +109,7 @@ const validateCreateBranch = async (sales, images) => {
     fs.unlinkSync(sales_img.path);
     fs.unlinkSync(face_national_id_img.path);
     fs.unlinkSync(back_national_id_img.path);
-    return {err}
+    return { err };
   }
 
   const sales_data = {
@@ -125,6 +125,6 @@ const validateCreateBranch = async (sales, images) => {
     back_national_id_img: back_national_id_img.filename,
     facebook_link: facebook_link,
   };
-  return {sales_data}
+  return { sales_data };
 };
 module.exports = validateCreateBranch;
