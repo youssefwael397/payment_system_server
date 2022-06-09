@@ -64,6 +64,25 @@ const updateMangerImage = async ({ manager_id, manager_img }) => {
   }
 };
 
+const ResetPassword = async ({ id, password }) => {
+  try {
+    await Manager.update(
+      {
+        password: password,
+      },
+      {
+        where: { manager_id: id },
+      }
+    );
+    let updated_manager = await Manager.findOne({
+      where: { manager_id: id },
+    });
+    return updated_manager;
+  } catch (error) {
+    console.log("managerRepo updateLogoImage error: " + error);
+  }
+};
+
 // update manager national imgs
 const updateManagerNationalImages = async ({
   manager_id,
@@ -161,14 +180,13 @@ const checkIfManagerExists = async (manager) => {
 };
 
 const branchHasManager = async (branch_id) => {
-    const exist_manager = await Manager.findOne({
-      where: {
-        branch_id
-      },
-    });
-    return exist_manager
-  };
-
+  const exist_manager = await Manager.findOne({
+    where: {
+      branch_id,
+    },
+  });
+  return exist_manager;
+};
 
 // this object is responsible for exporting functions of this file to other files
 const managerRepo = {
@@ -182,6 +200,7 @@ const managerRepo = {
   updateManager,
   updateMangerImage,
   updateManagerNationalImages,
+  ResetPassword,
 };
 
 module.exports = { managerRepo };

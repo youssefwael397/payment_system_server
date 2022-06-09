@@ -156,7 +156,7 @@ router.get("/branch/:id", auth, manager, async (req, res) => {
 });
 
 // get sales by id
-router.get("/:id", auth, manager, async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   const { id } = req.params;
   try {
     const { sales, err } = await salesController.getSalesById(id);

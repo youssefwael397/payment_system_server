@@ -11,6 +11,7 @@ const verifyToken = (req, res, next) => {
     }
 
     try {
+        console.log(token)
         jwt.verify(token, jwt_encrypt);
     } catch (err) {
         return res.status(401).send({ status: 'error', error: "Invalid Token" });

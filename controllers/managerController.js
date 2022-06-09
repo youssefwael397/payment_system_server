@@ -40,6 +40,30 @@ const updateManager = async (id, manager) => {
   return { manager, err };
 };
 
+const resetPassword = async (id, password) => {
+  try {
+    const manager = await managerRepo.getManagerById(id);
+    if (manager) {
+      const manager_data = {
+        id: id,
+        password: bcrypt.hashSync(password, 10), // hashing password to save it to db
+      };
+      const update_manager = await managerRepo.ResetPassword(manager_data);
+      return { update_manager };
+    } else {
+      const err = {
+        code: 403,
+        text: "لا يوجد مدير بهذا الرقم",
+      };
+      return { err };
+    }
+  } catch (error) {
+    console.log("managerController resetPassword error: " + error);
+  }
+
+  return { manager, err };
+};
+
 const updateManagerImage = async (id, manager_img) => {
   try {
     const { manager_data, err } = await validateUpdateManagerImg(
@@ -178,7 +202,7 @@ const deleteManagerById = async (id) => {
     if (!manager) {
       const err = {
         code: 404,
-        text: `No managers with id: ${id}`
+        text: `No managers with id: ${id}`,
       };
       return { err };
     }
@@ -198,6 +222,7 @@ const deleteManagerById = async (id) => {
 const managerController = {
   createNewManager,
   getAllManagers,
+  resetPassword,
   getManagerById,
   deleteManagerById,
   updateManager,

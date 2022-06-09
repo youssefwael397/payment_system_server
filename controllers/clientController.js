@@ -26,7 +26,7 @@ const createNewClient = async (client, images) => {
     if (!face_national_id_img || !back_national_id_img) {
       err = {
         code: 404,
-        text: "Please Attach National Images",
+        text: "من فضلك ادخل الصور المطلوبة",
       };
       return { err };
     }
@@ -43,7 +43,7 @@ const createNewClient = async (client, images) => {
     ) {
       err = {
         code: 404,
-        text: "All inputs are required.",
+        text: "كل الحقول مطلوبة",
       };
       face_national_id_img && fs.unlinkSync(face_national_id_img.path);
       back_national_id_img && fs.unlinkSync(back_national_id_img.path);
@@ -78,7 +78,7 @@ const createNewClient = async (client, images) => {
     if (duplicateClient) {
       err = {
         code: 409,
-        text: "This client is already exists.",
+        text: "هذا العميل موجود بالفعل",
       };
       face_national_id_img && fs.unlinkSync(face_national_id_img.path);
       back_national_id_img && fs.unlinkSync(back_national_id_img.path);

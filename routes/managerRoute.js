@@ -66,6 +66,38 @@ router.put("/update/:id", auth, boss, upload.none(), async (req, res) => {
   }
 });
 
+router.put(
+  "/resetpassword/:id",
+  auth,
+  boss,
+  upload.none(),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { password } = req.body;
+      const { err } = await managerController.resetPassword(
+        id,
+        password
+      );
+      
+      if (err) {
+        res.status(err.code).send({
+          status: "error",
+          error: err.text,
+        });
+      } else {
+        res.send('تم تعديل كلمة المرور بنجاح');
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        status: "error",
+        error: "Internal Server Error",
+      });
+    }
+  }
+);
+
 // update manager image by form data
 router.put(
   "/update/image/:id",
