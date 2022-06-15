@@ -2,9 +2,14 @@ const express = require("express");
 const fs = require("fs");
 const auth = require("../middleware/auth");
 const sales = require("../middleware/sales");
+const manager = require("../middleware/manager");
 let smtpTransport = require("nodemailer-smtp-transport");
 const router = express.Router();
 const { processController } = require("../controllers/processController");
+const {
+  processMonthController,
+} = require("../controllers/processMonthController");
+
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const storage = multer.diskStorage({
@@ -52,50 +57,19 @@ router.get("/client/:id", auth, async (req, res) => {
   }
 });
 
-
-// get all processes by sales id
-router.get("/sales/:id", auth, async (req, res) => {
-    const { id } = req.params;
-    try {
-      const { processes } = await processController.getAllProcessesBySalesId(id);
-      res.send(processes);
-    } catch (error) {
-      res.status(500).send({
-        status: "error",
-        error,
-      });
-    }
-  });
-  
-
-
-
-
-
-
-// update client by form data
-router.put("/update/:client_id", upload.none(), async (req, res) => {
-  const { client_name, email, national_id, phone, facebook_link } = req.body;
-  const { client_id } = req.params;
-  const token = req.body.token || req.headers.authorization;
+// get all processes months by sales id
+router.get("/month/:id", auth, async (req, res) => {
+  const { id } = req.params;
   try {
-    const { client, err } = await clientController.updateClient(
-      client_id,
-      client_name,
-      email,
-      national_id,
-      phone,
-      facebook_link,
-      token
-    );
+    const { processes, err } =
+      await processMonthController.getAllProcessesMonthByProcessId(id);
     if (err) {
       res.status(err.code).send({
         status: "error",
         error: err.text,
       });
-    } else {
-      res.send(client);
     }
+    res.send(processes);
   } catch (error) {
     res.status(500).send({
       status: "error",
@@ -103,6 +77,75 @@ router.put("/update/:client_id", upload.none(), async (req, res) => {
     });
   }
 });
+
+// get all processes by sales id
+router.get("/sales/:id", auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { processes, err } = await processController.getAllProcessesBySalesId(
+      id
+    );
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    }
+    res.send(processes);
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
+
+// get process id
+router.get("/:id", auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { process, err } = await processController.getProcessById(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    }
+    res.send(process);
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
+
+// update client by form data
+router.put(
+  "/update/:process_month_id",
+  auth,
+  manager,
+  upload.none(),
+  async (req, res) => {
+    const { process_month_id } = req.params;
+    try {
+      const { process, err } = await processMonthController.updateProcessMonth(process_month_id);
+      if (err) {
+        res.status(err.code).send({
+          status: "error",
+          error: err.text,
+        });
+      } else {
+        res.send(process);
+      }
+    } catch (error) {
+      res.status(500).send({
+        status: "error",
+        error,
+      });
+    }
+  }
+);
 
 // update client image by form data
 router.put("/update/image/:id", upload.single("image"), async (req, res) => {

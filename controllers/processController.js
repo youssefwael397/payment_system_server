@@ -1,5 +1,6 @@
 const { clientRepo } = require("../repos/clientRepo");
 const { processRepo } = require("../repos/processRepo");
+const { salesRepo } = require("../repos/salesRepo");
 const { processMonthController } = require("./processMonthController");
 
 const fs = require("fs");
@@ -59,24 +60,39 @@ const getAllProcessesByClientId = async (id) => {
   let processes;
   try {
     processes = await processRepo.getAllProcessesByClientId(id);
-    return { processes};
-
+    return { processes };
   } catch (err) {
     console.log("clientController getAllClients error: " + err);
   }
 };
 
 const getAllProcessesBySalesId = async (id) => {
-    let processes;
-    try {
-      processes = await processRepo.getAllProcessesBySalesId(id);
-      return { processes};
-  
-    } catch (err) {
-      console.log("clientController getAllClients error: " + err);
+  let processes;
+  try {
+    const salesExist = await salesRepo.getSalesById(id);
+    if (!salesExist) {
+      const err = {
+        code: 403,
+        text: `There is no sales with id: ${id}`,
+      };
+      return { err };
     }
-  };
-  
+    processes = await processRepo.getAllProcessesBySalesId(id);
+    return { processes };
+  } catch (err) {
+    console.log("clientController getAllClients error: " + err);
+  }
+};
+
+const getAllProcessesMonthByProcessId = async (id) => {
+  let processes;
+  try {
+    processes = await processRepo.getAllProcessesMonthByProcessId(id);
+    return { processes };
+  } catch (err) {
+    console.log("clientController getAllClients error: " + err);
+  }
+};
 
 // update client
 const updateClient = async (
@@ -202,37 +218,20 @@ const getAllClients = async (token) => {
 };
 
 // get client by id
-const getClientById = async (id, token) => {
-  let err, client;
+const getProcessById = async (id) => {
+  let err, process;
   try {
-    if (!token) {
+    process = await processRepo.getProcessById(id);
+    if (!process) {
       err = {
-        code: 401,
-        text: "please attach token.",
+        code: 404,
+        text: `No process with id: ${id}`,
       };
-    } else {
-      client = await clientRepo.getClientById(id);
-      if (!client) {
-        err = {
-          code: 404,
-          text: `No client with id: ${id}`,
-        };
-      } else {
-        const face_national_id_img = await fsAsync.readFile(
-          `img/${client.face_national_id_img}`,
-          { encoding: "base64" }
-        );
-        const back_national_id_img = await fsAsync.readFile(
-          `img/${client.back_national_id_img}`,
-          { encoding: "base64" }
-        );
-        client.face_national_id_img = face_national_id_img;
-        client.back_national_id_img = back_national_id_img;
-      }
     }
-    return { client, err };
+
+    return { process, err };
   } catch (err) {
-    console.log("clientController getClientById error: " + err);
+    console.log("processController getClientById error: " + err);
   }
 };
 
@@ -294,9 +293,10 @@ const processController = {
   getAllProcessesByClientId,
   getAllProcessesBySalesId,
   getAllClients,
-  getClientById,
+  getProcessById,
   deleteClientById,
   updateClient,
+  getAllProcessesMonthByProcessId,
 };
 
 module.exports = { processController };

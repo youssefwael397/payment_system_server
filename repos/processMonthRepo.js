@@ -1,4 +1,4 @@
-const { Process_Month, Sales, Sequelize } = require("../models/index");
+const { Process_Month, Process, Sales, Sequelize } = require("../models/index");
 const jwt = require("jsonwebtoken");
 const op = Sequelize.Op;
 
@@ -37,6 +37,24 @@ const updateClient = async (
     );
     updated_client = await Client.findOne({ where: { client_id: client_id } });
     return updated_client;
+  } catch (error) {
+    console.log("clientRepo updateClient error: " + error);
+  }
+};
+
+const updateProcessMonth = async (id) => {
+  let updated_process;
+  try {
+    await Process_Month.update(
+      {
+        is_cashed: true
+      },
+      {
+        where: { process_month_id: id },
+      }
+    );
+    updated_process = await Process_Month.findOne({ where: { process_month_id: id } });
+    return updated_process;
   } catch (error) {
     console.log("clientRepo updateClient error: " + error);
   }
@@ -159,6 +177,17 @@ const checkIfProcessExists = async ({
   }
 };
 
+const getAllProcessesMonthByProcessId = async (id) => {
+  try {
+    const new_process = await Process_Month.findAll({
+      where: { process_id: id },
+    });
+    return new_process;
+  } catch (error) {
+    console.log("clientRepo createNewClient error: " + error);
+  }
+};
+
 // this object is responsible for exporting functions of this file to other files
 const processMonthRepo = {
   createNewProcessMonth,
@@ -170,6 +199,8 @@ const processMonthRepo = {
   updateClient,
   updateClientImage,
   updateClientNationalImages,
+  getAllProcessesMonthByProcessId,
+  updateProcessMonth,
 };
 
 module.exports = { processMonthRepo };

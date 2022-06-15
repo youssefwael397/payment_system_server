@@ -69,6 +69,10 @@ module.exports = (sequelize, DataTypes) => {
     facebook_link: {
       type: DataTypes.STRING,
       require: true
+    },
+    isLock: {
+      type: DataTypes.BOOLEAN,
+      default: false,
     }
   }, {
     sequelize,

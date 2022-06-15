@@ -124,6 +124,7 @@ const validateCreateBranch = async (sales, images) => {
     face_national_id_img: face_national_id_img.filename,
     back_national_id_img: back_national_id_img.filename,
     facebook_link: facebook_link,
+    isLock: false
   };
   return { sales_data };
 };

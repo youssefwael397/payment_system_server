@@ -29,6 +29,25 @@ const updateBranch = async (id, branch) => {
   }
 };
 
+const lockBranchById = async (id) => {
+  try {
+    const update_branch = await branchRepo.lockBranchById(id);
+    return { update_branch };
+  } catch (error) {
+    console.log("branchController updateBranch error: " + error);
+  }
+};
+
+
+const unLockBranchById = async (id) => {
+  try {
+    const update_branch = await branchRepo.unLockBranchById(id);
+    return { update_branch };
+  } catch (error) {
+    console.log("branchController updateBranch error: " + error);
+  }
+};
+
 // update branch logo image
 const updateLogoImage = async (id, logo) => {
   try {
@@ -44,6 +63,7 @@ const updateLogoImage = async (id, logo) => {
     console.log("branchController updateLogoImage error: " + error);
   }
 };
+
 
 // get all branches
 const getAllBranches = async () => {
@@ -120,6 +140,8 @@ const branchController = {
   deleteBranchById,
   updateBranch,
   updateLogoImage,
+  lockBranchById,
+  unLockBranchById
 };
 
 module.exports = { branchController };

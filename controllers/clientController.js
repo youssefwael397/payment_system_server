@@ -203,6 +203,66 @@ const getAllClients = async () => {
 };
 
 // get client by id
+const getClientsBySalesId = async (id) => {
+  let err, clients;
+  try {
+    clients = await clientRepo.getClientsBySalesId(id);
+    let promises = [];
+    clients.forEach((client) => {
+      promises.push(
+        new Promise(async (resolve, reject) => {
+          const face_national_id_img = await fsAsync.readFile(
+            `img/${client.face_national_id_img}`,
+            { encoding: "base64" }
+          );
+          const back_national_id_img = await fsAsync.readFile(
+            `img/${client.back_national_id_img}`,
+            { encoding: "base64" }
+          );
+          client.face_national_id_img = face_national_id_img;
+          client.back_national_id_img = back_national_id_img;
+          resolve();
+        })
+      );
+    });
+    await Promise.all(promises);
+
+    return { clients };
+  } catch (err) {
+    console.log("clientController getClientsBySalesId error: " + err);
+  }
+};
+
+const getClientsByBranchId = async (id) => {
+  let err, clients;
+  try {
+    clients = await clientRepo.getClientsByBranchId(id);
+    let promises = [];
+    clients.forEach((client) => {
+      promises.push(
+        new Promise(async (resolve, reject) => {
+          const face_national_id_img = await fsAsync.readFile(
+            `img/${client.face_national_id_img}`,
+            { encoding: "base64" }
+          );
+          const back_national_id_img = await fsAsync.readFile(
+            `img/${client.back_national_id_img}`,
+            { encoding: "base64" }
+          );
+          client.face_national_id_img = face_national_id_img;
+          client.back_national_id_img = back_national_id_img;
+          resolve();
+        })
+      );
+    });
+    await Promise.all(promises);
+
+    return { clients };
+  } catch (err) {
+    console.log("clientController getClientsBySalesId error: " + err);
+  }
+};
+
 const getClientById = async (id) => {
   let err, client;
   try {
@@ -292,6 +352,8 @@ const clientController = {
   deleteClientById,
   updateClient,
   updateClientNationalImages,
+  getClientsBySalesId,
+  getClientsByBranchId
 };
 
 module.exports = { clientController };

@@ -135,7 +135,7 @@ router.get("/", auth, manager, async (req, res) => {
 });
 
 // get all sales by branch id
-router.get("/branch/:id", auth, manager, async (req, res) => {
+router.get("/branch/:id", auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { sales, err } = await salesController.getAllSalesByBranchId(id);
@@ -154,6 +154,39 @@ router.get("/branch/:id", auth, manager, async (req, res) => {
     });
   }
 });
+
+router.put(
+  "/resetpassword/:id",
+  auth,
+  manager,
+  upload.none(),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { password } = req.body;
+      const { err } = await salesController.resetPassword(
+        id,
+        password
+      );
+      
+      if (err) {
+        res.status(err.code).send({
+          status: "error",
+          error: err.text,
+        });
+      } else {
+        res.send('تم تعديل كلمة المرور بنجاح');
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        status: "error",
+        error: "Internal Server Error",
+      });
+    }
+  }
+);
+
 
 // get sales by id
 router.get("/:id", auth, async (req, res) => {

@@ -67,6 +67,49 @@ router.put("/update/:id", auth, boss, upload.none(), async (req, res) => {
   }
 });
 
+router.put("/lock/:id", auth, boss, upload.none(), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { update_branch, err } = await branchController.lockBranchById(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(update_branch);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      error: "Internal Server Error",
+    });
+  }
+});
+
+router.put("/unlock/:id", auth, boss, upload.none(), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { update_branch, err } = await branchController.unLockBranchById(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(update_branch);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      status: "error",
+      error: "Internal Server Error",
+    });
+  }
+});
+
+
 // update logo image
 router.put(
   "/update/image/:id",

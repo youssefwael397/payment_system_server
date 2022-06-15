@@ -1,4 +1,4 @@
-const { Process, Sales, Sequelize } = require("../models/index");
+const { Process, Sales, Client,Product, Sequelize } = require("../models/index");
 const jwt = require("jsonwebtoken");
 const op = Sequelize.Op;
 
@@ -22,13 +22,16 @@ const getAllProcessesByClientId = async (client_id) => {
 };
 
 const getAllProcessesBySalesId = async (sales_id) => {
-    try {
-      const processes = await Process.findAll({ where: { sales_id } });
-      return processes;
-    } catch (error) {
-      console.log("clientRepo getAllClients error: " + error);
-    }
-  };
+  try {
+    const processes = await Process.findAll({
+      where: { sales_id },
+      include: [{ model: Sales }, { model: Client } , { model: Product }],
+    });
+    return processes;
+  } catch (error) {
+    console.log("clientRepo getAllClients error: " + error);
+  }
+};
 
 // update client info
 const updateClient = async (
@@ -114,14 +117,25 @@ const getAllClients = async () => {
 };
 
 // get client by id
-const getClientById = async (id) => {
+const getProcessById = async (id) => {
   try {
-    const client = await Client.findOne({
-      where: { client_id: id },
+    const process = await Process.findOne({
+      where: { process_id: id },
+      include: [
+        {
+          model: Sales
+        },
+        {
+          model: Client
+        },
+        {
+          model: Product
+        }
+      ]
     });
-    return client;
+    return process;
   } catch (error) {
-    console.log("clientRepo getClientById error: " + error);
+    console.log("processRepo getprocessById error: " + error);
   }
 };
 
@@ -177,6 +191,17 @@ const checkIfProcessExists = async ({
   }
 };
 
+const getAllProcessesMonthByProcessId = async (id) => {
+  try {
+    const new_process = await Process_Month.findAll({
+      where: { process_id: id },
+    });
+    return new_process;
+  } catch (error) {
+    console.log("clientRepo createNewClient error: " + error);
+  }
+};
+
 // this object is responsible for exporting functions of this file to other files
 const processRepo = {
   createNewProcess,
@@ -184,12 +209,13 @@ const processRepo = {
   getAllProcessesBySalesId,
   checkIfProcessExists,
   getAllClients,
-  getClientById,
+  getProcessById,
   getClientsBySalesId,
   deleteClientById,
   updateClient,
   updateClientImage,
   updateClientNationalImages,
+  getAllProcessesMonthByProcessId,
 };
 
 module.exports = { processRepo };

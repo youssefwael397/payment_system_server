@@ -70,7 +70,7 @@ router.put(
 );
 
 // get all categories by branch id
-router.get("/branch/:id", auth, manager, async (req, res) => {
+router.get("/branch/:id", auth, async (req, res) => {
   const { id } = req.params;
   try {
     const { products, err } = await productController.getAllProductsByBranchId(
@@ -90,7 +90,7 @@ router.get("/branch/:id", auth, manager, async (req, res) => {
 });
 
 // get Product by id
-router.get("/:id", auth, manager, async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   const { id } = req.params;
   try {
     const { product, err } = await productController.getProductById(id);

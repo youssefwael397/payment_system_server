@@ -256,6 +256,30 @@ const deleteSalesById = async (id) => {
   }
 };
 
+const resetPassword = async (id, password) => {
+  try {
+    const sales = await salesRepo.getSalesById(id);
+    if (sales) {
+      const sales_data = {
+        id: id,
+        password: bcrypt.hashSync(password, 10), // hashing password to save it to db
+      };
+      const update_sales = await salesRepo.ResetPassword(sales_data);
+      return { update_sales };
+    } else {
+      const err = {
+        code: 403,
+        text: "لا يوجد مندوب بهذا الرقم",
+      };
+      return { err };
+    }
+  } catch (error) {
+    console.log("salesController resetPassword error: " + error);
+  }
+
+  return { manager, err };
+};
+
 // this object is responsible for exporting functions of this file to other files
 const salesController = {
   createNewSales,
@@ -266,6 +290,7 @@ const salesController = {
   updateSales,
   updateSalesImage,
   updateSalesNationalImages,
+  resetPassword
 };
 
 module.exports = { salesController };

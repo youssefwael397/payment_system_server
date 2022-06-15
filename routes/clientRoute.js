@@ -135,6 +135,48 @@ router.get("/:id",auth, async (req, res) => {
   }
 });
 
+// get clients by sales id
+router.get("/sales/:id",auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { clients, err } = await clientController.getClientsBySalesId(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(clients);
+    }
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
+
+
+router.get("/branch/:id",auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { clients, err } = await clientController.getClientsByBranchId(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(clients);
+    }
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
+
 // delete client by id
 router.delete("/:id", async (req, res) => {
   try {

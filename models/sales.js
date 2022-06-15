@@ -76,6 +76,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       require: true
     },
+    isLock: {
+      type: DataTypes.BOOLEAN,
+      default: false,
+    }
   }, {
     sequelize,
     modelName: 'Sales',

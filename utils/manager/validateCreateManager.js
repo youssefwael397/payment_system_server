@@ -4,9 +4,25 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs");
 
 const validateCreateManager = async (manager, images) => {
-  const manager_img = images[0];
-  const face_national_id_img = images[1];
-  const back_national_id_img = images[2];
+  let manager_img;
+  let face_national_id_img;
+  let back_national_id_img;
+
+  images.map((image) => {
+    console.log(image);
+    if (image.fieldname === "manager_img") {
+      manager_img = image;
+    }
+
+    if (image.fieldname === "manager_face_national_id_img") {
+      face_national_id_img = image;
+    }
+
+    if (image.fieldname === "manager_back_national_id_img") {
+      back_national_id_img = image;
+    }
+  });
+
 
   if (!(manager_img && face_national_id_img && back_national_id_img)) {
     const err = {
@@ -61,7 +77,6 @@ const validateCreateManager = async (manager, images) => {
     return { err };
   }
 
-
   const ExistBranch = await branchRepo.getBranchById(branch_id);
   if (!ExistBranch) {
     const err = {
@@ -75,7 +90,7 @@ const validateCreateManager = async (manager, images) => {
   }
 
   const branchHasManager = await managerRepo.branchHasManager(branch_id);
-  if(branchHasManager){
+  if (branchHasManager) {
     const err = {
       code: 409,
       text: `هذا الفرع يديره ${branchHasManager.manager_name} بالفعل`,
@@ -109,6 +124,7 @@ const validateCreateManager = async (manager, images) => {
     manager_img: manager_img.filename,
     face_national_id_img: face_national_id_img.filename,
     back_national_id_img: back_national_id_img.filename,
+    isLock: false,
   };
   return { manager_data };
 };

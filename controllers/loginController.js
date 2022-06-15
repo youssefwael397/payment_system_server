@@ -12,10 +12,7 @@ const login = async (email, password) => {
     const boss = await bossRepo.getBossByEmail(email);
     const manager = await managerRepo.getManagerByEmail(email);
     const sales = await salesRepo.getSalesByEmail(email);
-    console.log(boss)
-    console.log(manager)
     console.log(sales)
-    console.log('get boss')
     if (!boss && !manager && !sales) {
         err = {
             code: 404,

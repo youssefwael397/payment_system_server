@@ -141,7 +141,7 @@ const getManagerById = async (id) => {
 const getManagerByEmail = async (email) => {
   try {
     const manager = await Manager.findOne({
-      where: { email: email },
+      where: { email: email, isLock: false },
     });
     return manager;
   } catch (error) {
