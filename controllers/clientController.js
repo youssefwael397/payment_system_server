@@ -38,8 +38,7 @@ const createNewClient = async (client, images) => {
       !phone ||
       !work ||
       !home_address ||
-      !work_address ||
-      !facebook_link
+      !work_address
     ) {
       err = {
         code: 404,
@@ -60,7 +59,6 @@ const createNewClient = async (client, images) => {
       phone: phone,
       face_national_id_img: face_national_id_img.filename,
       back_national_id_img: back_national_id_img.filename,
-      facebook_link: facebook_link,
     };
 
     const salesExist = await salesRepo.getSalesById(sales_id);
@@ -95,9 +93,9 @@ const createNewClient = async (client, images) => {
 const updateClient = async (client_id, client) => {
   try {
     let err;
-    const { client_name, email, national_id, phone, facebook_link } = client;
+    const { client_name, national_id, phone } = client;
 
-    if (!client_name || !email || !national_id || !phone || !facebook_link) {
+    if (!client_name || !national_id || !phone) {
       err = {
         code: 404,
         text: "All inputs are required.",
@@ -292,6 +290,24 @@ const getClientById = async (id) => {
   }
 };
 
+const blockClientById = async (id) => {
+  let err, client;
+  try {
+    client = await clientRepo.getClientById(id);
+    if (!client) {
+      err = {
+        code: 404,
+        text: `No client with id: ${id}`,
+      };
+      return { err };
+    }
+    client = await clientRepo.blockClientById(id)
+    return { client };
+  } catch (err) {
+    console.log("clientController getClientById error: " + err);
+  }
+};
+
 // get client by id
 const deleteClientById = async (id, token) => {
   console.log("deleteClientById");
@@ -349,11 +365,12 @@ const clientController = {
   createNewClient,
   getAllClients,
   getClientById,
+  blockClientById,
   deleteClientById,
   updateClient,
   updateClientNationalImages,
   getClientsBySalesId,
-  getClientsByBranchId
+  getClientsByBranchId,
 };
 
 module.exports = { clientController };

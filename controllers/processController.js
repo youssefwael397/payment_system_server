@@ -2,14 +2,24 @@ const { clientRepo } = require("../repos/clientRepo");
 const { processRepo } = require("../repos/processRepo");
 const { salesRepo } = require("../repos/salesRepo");
 const { processMonthController } = require("./processMonthController");
+const { processMonthRepo } = require("../repos/processMonthRepo");
 
 const fs = require("fs");
 const fsAsync = require("fs").promises;
 const bcrypt = require("bcryptjs");
 
 // Create new process
-const createNewProcess = async (process) => {
+const createNewProcess = async (process, image) => {
   try {
+    const insurance_paper = image;
+    if (!insurance_paper) {
+      const err = {
+        code: 404,
+        text: "من فضلك ادخل صورة الوصل",
+      };
+      return { err };
+    }
+
     const {
       client_id,
       product_id,
@@ -36,6 +46,7 @@ const createNewProcess = async (process) => {
         code: 422,
         text: "All inputs are required.",
       };
+      fs.unlinkSync(insurance_paper.path);
       return { err };
     }
 
@@ -45,9 +56,10 @@ const createNewProcess = async (process) => {
         code: 422,
         text: "This Process is already exists",
       };
+      fs.unlinkSync(insurance_paper.path);
       return { err };
     }
-    const new_process = await processRepo.createNewProcess(process);
+    const new_process = await processRepo.createNewProcess(process, image);
 
     await processMonthController.processMonthCreator(new_process);
     return { new_process };
@@ -84,11 +96,56 @@ const getAllProcessesBySalesId = async (id) => {
   }
 };
 
+const getAllProcessesByBranchId = async (id) => {
+  let processes;
+  try {
+    processes = await processRepo.getAllProcessesByBranchId(id);
+    return { processes };
+  } catch (err) {
+    console.log("clientController getAllClients error: " + err);
+  }
+};
+
 const getAllProcessesMonthByProcessId = async (id) => {
   let processes;
   try {
     processes = await processRepo.getAllProcessesMonthByProcessId(id);
     return { processes };
+  } catch (err) {
+    console.log("clientController getAllClients error: " + err);
+  }
+};
+
+const getAllMonths = () => {
+  try {
+    const monthsCreator = () => {
+      const d = new Date();
+      let text = d.toLocaleDateString();
+      let date = text.split("/");
+      let month = date[0];
+      let year = date[2];
+
+      let monthList = [];
+
+      for (let i = 0; i < 12; i++) {
+        if (i > 0) {
+          month = +month + 1;
+        }
+
+        if (month > 12) {
+          month = 1;
+          year = +year + 1;
+        }
+
+        let new_month = `${month}/${year}`;
+        monthList = [...monthList, new_month];
+      }
+      console.log(monthList);
+      return monthList;
+    };
+
+    const months = monthsCreator();
+    return { months };
   } catch (err) {
     console.log("clientController getAllClients error: " + err);
   }
@@ -228,6 +285,12 @@ const getProcessById = async (id) => {
         text: `No process with id: ${id}`,
       };
     }
+    const insurancePaper = await fsAsync.readFile(
+      `img/${process.insurance_paper}`,
+      { encoding: "base64" }
+    );
+
+    process.insurance_paper = insurancePaper;
 
     return { process, err };
   } catch (err) {
@@ -287,6 +350,34 @@ const deleteClientById = async (id, token) => {
   }
 };
 
+const deleteProcessById = async (id) => {
+  const process = await processRepo.getProcessById(id);
+  if (!process) {
+    const err = {
+      code: 401,
+      text: "عملية غير موجودة",
+    };
+    return { err };
+  }
+  const result = await processMonthRepo.deleteProcessMonthById(id);
+  if (result) {
+    result = await processRepo.deleteProcessById(id);
+    fs.unlinkSync(`img/${process.insurancePaper}`);
+    return { result };
+  } else {
+    const err = {
+      code: 403,
+      text: "فشل في حذف العملية",
+    };
+    return { err };
+  }
+};
+
+const getPrintData = async (sales_id, date) => {
+  const data = await processRepo.getPrintData(sales_id, date);
+  return {data};
+};
+
 // this object is responsible for exporting functions of this file to other files
 const processController = {
   createNewProcess,
@@ -297,6 +388,10 @@ const processController = {
   deleteClientById,
   updateClient,
   getAllProcessesMonthByProcessId,
+  getAllProcessesByBranchId,
+  deleteProcessById,
+  getAllMonths,
+  getPrintData,
 };
 
 module.exports = { processController };

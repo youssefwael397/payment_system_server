@@ -68,6 +68,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         require: true,
       },
+      insurance_paper: {
+        type: DataTypes.STRING,
+        require: true,
+      },
     },
     {
       sequelize,

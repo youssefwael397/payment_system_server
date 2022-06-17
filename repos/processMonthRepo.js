@@ -1,4 +1,10 @@
-const { Process_Month, Process, Sales, Sequelize } = require("../models/index");
+const {
+  Process_Month,
+  Process,
+  Sales,
+  Product,
+  Sequelize,
+} = require("../models/index");
 const jwt = require("jsonwebtoken");
 const op = Sequelize.Op;
 
@@ -45,18 +51,43 @@ const updateClient = async (
 const updateProcessMonth = async (id) => {
   let updated_process;
   try {
+    const processMonth = await Process_Month.findOne({
+      where: { process_month_id: id },
+    });
     await Process_Month.update(
       {
-        is_cashed: true
+        is_cashed: !processMonth.is_cashed,
       },
       {
         where: { process_month_id: id },
       }
     );
-    updated_process = await Process_Month.findOne({ where: { process_month_id: id } });
+    updated_process = await Process_Month.findOne({
+      where: { process_month_id: id },
+    });
     return updated_process;
   } catch (error) {
-    console.log("clientRepo updateClient error: " + error);
+    console.log("processMonthRepo updateProcessMonth error: " + error);
+  }
+};
+
+const updateMonthPrice = async (id, price) => {
+  let updated_process;
+  try {
+    await Process_Month.update(
+      {
+        price: price,
+      },
+      {
+        where: { process_month_id: id },
+      }
+    );
+    updated_process = await Process_Month.findOne({
+      where: { process_month_id: id },
+    });
+    return updated_process;
+  } catch (error) {
+    console.log("processMonthRepo updateProcessMonth error: " + error);
   }
 };
 
@@ -187,6 +218,44 @@ const getAllProcessesMonthByProcessId = async (id) => {
     console.log("clientRepo createNewClient error: " + error);
   }
 };
+const getAllProcessesByMonth = async (month) => {
+  try {
+    const processes = await Process.findAll({
+      include: [
+        {
+          model: Process_Month,
+          where: { date: month },
+          // include: [
+          //   {
+          //     model: Sales,
+          //   },
+          //   {
+          //     model: Client,
+          //   },
+          //   {
+          //     model: Product,
+          //   },
+          // ],
+        },
+      ],
+    });
+    console.log(processes);
+    return processes;
+  } catch (error) {
+    console.log("clientRepo createNewClient error: " + error);
+  }
+};
+
+const deleteProcessMonthById = async (id) => {
+  try {
+    const delete_process = await Process_Month.destroy({
+      where: { process_id: id },
+    });
+    return delete_process;
+  } catch (error) {
+    console.log("processMonthRepo deleteProcessMonthById error: " + error);
+  }
+};
 
 // this object is responsible for exporting functions of this file to other files
 const processMonthRepo = {
@@ -201,6 +270,9 @@ const processMonthRepo = {
   updateClientNationalImages,
   getAllProcessesMonthByProcessId,
   updateProcessMonth,
+  deleteProcessMonthById,
+  getAllProcessesByMonth,
+  updateMonthPrice,
 };
 
 module.exports = { processMonthRepo };

@@ -13,19 +13,14 @@ const createNewClient = async (client) => {
 };
 
 // update client info
-const updateClient = async (
-  client_id,
-  { client_name, email, national_id, phone, facebook_link }
-) => {
+const updateClient = async (client_id, { client_name, national_id, phone }) => {
   let updated_client;
   try {
     await Client.update(
       {
         client_name,
-        email,
         national_id,
         phone,
-        facebook_link,
       },
       {
         where: { client_id: client_id },
@@ -96,7 +91,29 @@ const getClientById = async (id) => {
   try {
     const client = await Client.findOne({
       where: { client_id: id },
+      include: {
+        model: Sales,
+      },
     });
+    return client;
+  } catch (error) {
+    console.log("clientRepo getClientById error: " + error);
+  }
+};
+
+const blockClientById = async (id) => {
+  try {
+    const client = await Client.findOne({
+      where: { client_id: id },
+    });
+    await Client.update(
+      {
+        is_blocked: !client.is_blocked,
+      },
+      {
+        where: { client_id: id },
+      }
+    );
     return client;
   } catch (error) {
     console.log("clientRepo getClientById error: " + error);
@@ -165,6 +182,7 @@ const clientRepo = {
   checkIfClientExists,
   getAllClients,
   getClientById,
+  blockClientById,
   getClientsBySalesId,
   deleteClientById,
   updateClient,

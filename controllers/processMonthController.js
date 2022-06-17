@@ -1,7 +1,9 @@
 const { processMonthRepo } = require("../repos/processMonthRepo");
 
 const processMonthCreator = async (new_process) => {
-  let price_per_month = (new_process.final_price - new_process.first_price) / new_process.month_count;
+  let price_per_month =
+    (new_process.final_price - new_process.first_price) /
+    new_process.month_count;
   price_per_month = Math.round(price_per_month / 5) * 5;
   let process_month_date = new_process.first_date;
 
@@ -37,7 +39,20 @@ const getAllProcessesMonthByProcessId = async (id) => {
     processes = await processMonthRepo.getAllProcessesMonthByProcessId(id);
     return { processes };
   } catch (err) {
-    console.log("processMonthController getAllProcessesMonthByProcessId error: " + err);
+    console.log(
+      "processMonthController getAllProcessesMonthByProcessId error: " + err
+    );
+  }
+};
+
+const getAllProcessesByMonth = async (month) => {
+  let processes;
+  try {
+    processes = await processMonthRepo.getAllProcessesByMonth(month);
+    console.log(processes);
+    return { processes };
+  } catch (err) {
+    console.log("processMonthController getAllProcessesByMonth error: " + err);
   }
 };
 
@@ -51,11 +66,23 @@ const updateProcessMonth = async (id) => {
   }
 };
 
+const updateMonthPrice = async (id, price) => {
+  let process;
+  try {
+    process = await processMonthRepo.updateMonthPrice(id, price);
+    return { process };
+  } catch (err) {
+    console.log("processMonthController updateProcessMonth error: " + err);
+  }
+};
+
 // this object is responsible for exporting functions of this file to other files
 const processMonthController = {
   processMonthCreator,
   getAllProcessesMonthByProcessId,
-  updateProcessMonth
+  updateProcessMonth,
+  getAllProcessesByMonth,
+  updateMonthPrice,
 };
 
 module.exports = { processMonthController };

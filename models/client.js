@@ -26,7 +26,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     sales_id: {
       type: DataTypes.INTEGER,
-      unique: true,
       require: true
     },
     client_name: {
@@ -60,10 +59,6 @@ module.exports = (sequelize, DataTypes) => {
       require: true
     },
     back_national_id_img: {
-      type: DataTypes.STRING,
-      require: true
-    },
-    facebook_link: {
       type: DataTypes.STRING,
       require: true
     },

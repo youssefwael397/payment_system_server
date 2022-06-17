@@ -101,6 +101,28 @@ router.put(
   }
 );
 
+// block & unblock client by id
+router.put("/block/:id",auth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const { client, err } = await clientController.blockClientById(id);
+    if (err) {
+      res.status(err.code).send({
+        status: "error",
+        error: err.text,
+      });
+    } else {
+      res.send(client);
+    }
+  } catch (error) {
+    res.status(500).send({
+      status: "error",
+      error,
+    });
+  }
+});
+
+
 // get all client
 router.get("/",auth, async (req, res) => {
   try {

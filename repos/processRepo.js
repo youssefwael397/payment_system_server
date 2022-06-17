@@ -1,10 +1,21 @@
-const { Process, Sales, Client,Product, Sequelize } = require("../models/index");
+const {
+  Process,
+  Sales,
+  Client,
+  Product,
+  Sequelize,
+  sequelize,
+} = require("../models/index");
 const jwt = require("jsonwebtoken");
 const op = Sequelize.Op;
 
 // Create new process
-const createNewProcess = async (process) => {
+const createNewProcess = async (process, image) => {
   try {
+    process = {
+      ...process,
+      insurance_paper: image.filename,
+    };
     const new_process = await Process.create(process);
     return new_process;
   } catch (error) {
@@ -25,7 +36,22 @@ const getAllProcessesBySalesId = async (sales_id) => {
   try {
     const processes = await Process.findAll({
       where: { sales_id },
-      include: [{ model: Sales }, { model: Client } , { model: Product }],
+      include: [{ model: Sales }, { model: Client }, { model: Product }],
+    });
+    return processes;
+  } catch (error) {
+    console.log("clientRepo getAllClients error: " + error);
+  }
+};
+
+const getAllProcessesByBranchId = async (branch_id) => {
+  try {
+    const processes = await Process.findAll({
+      include: [
+        { model: Sales, where: { branch_id } },
+        { model: Client },
+        { model: Product },
+      ],
     });
     return processes;
   } catch (error) {
@@ -123,15 +149,15 @@ const getProcessById = async (id) => {
       where: { process_id: id },
       include: [
         {
-          model: Sales
+          model: Sales,
         },
         {
-          model: Client
+          model: Client,
         },
         {
-          model: Product
-        }
-      ]
+          model: Product,
+        },
+      ],
     });
     return process;
   } catch (error) {
@@ -202,6 +228,29 @@ const getAllProcessesMonthByProcessId = async (id) => {
   }
 };
 
+const deleteProcessById = async (id) => {
+  try {
+    const delete_process = await Process.destroy({
+      where: { process_id: id },
+    });
+    return delete_process;
+  } catch (error) {
+    console.log("processRepo deleteProcessById error: " + error);
+  }
+};
+
+const getPrintData = async (sales_id, date) => {
+  try {
+    let data = await sequelize.query(
+      `SELECT p.process_id, p.first_price, p.month_count, p.final_price, pm.process_month_id, pm.date, pm.price, c.client_id, c.client_name, c.national_id, c.phone, c.work, c.home_address, c.work_address, s.sales_id, s.sales_name, b.branch_name, SUM(IF(pm.date = '${date}', pm.price, 0)) AS total_price FROM process_months AS pm CROSS JOIN processes AS p ON p.process_id = pm.process_id CROSS JOIN clients AS c ON c.client_id = p.client_id CROSS JOIN sales AS s ON s.sales_id = p.sales_id CROSS JOIN branches AS b ON b.branch_id = s.branch_id WHERE s.sales_id = ${sales_id} AND pm.date = '${date}' `
+    );
+    data = data[0];
+    return data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 // this object is responsible for exporting functions of this file to other files
 const processRepo = {
   createNewProcess,
@@ -216,6 +265,9 @@ const processRepo = {
   updateClientImage,
   updateClientNationalImages,
   getAllProcessesMonthByProcessId,
+  getAllProcessesByBranchId,
+  deleteProcessById,
+  getPrintData,
 };
 
 module.exports = { processRepo };
