@@ -242,10 +242,14 @@ const deleteProcessById = async (id) => {
 const getPrintData = async (sales_id, date) => {
   try {
     let data = await sequelize.query(
-      `SELECT p.process_id, p.first_price, p.month_count, p.final_price, pm.process_month_id, pm.date, pm.price, c.client_id, c.client_name, c.national_id, c.phone, c.work, c.home_address, c.work_address, s.sales_id, s.sales_name, b.branch_name, SUM(IF(pm.date = '${date}', pm.price, 0)) AS total_price FROM process_months AS pm CROSS JOIN processes AS p ON p.process_id = pm.process_id CROSS JOIN clients AS c ON c.client_id = p.client_id CROSS JOIN sales AS s ON s.sales_id = p.sales_id CROSS JOIN branches AS b ON b.branch_id = s.branch_id WHERE s.sales_id = ${sales_id} AND pm.date = '${date}' `
+      `SELECT p.process_id, p.first_price, p.month_count, p.final_price, pm.process_month_id, pm.date, pm.price, c.client_id, c.client_name, c.national_id, c.phone, c.work, c.home_address, c.work_address, s.sales_id, s.sales_name, b.branch_name, pr.product_name FROM process_months AS pm CROSS JOIN processes AS p ON p.process_id = pm.process_id CROSS JOIN products AS pr ON p.product_id = pr.product_id CROSS JOIN clients AS c ON c.client_id = p.client_id CROSS JOIN sales AS s ON s.sales_id = p.sales_id CROSS JOIN branches AS b ON b.branch_id = s.branch_id WHERE s.sales_id = ${sales_id} AND pm.date = '${date}' `
     );
     data = data[0];
-    return data;
+    let temp = 0;
+    data.map((process) => (temp = temp + process.price));
+    data = [...data];
+    const result = { data: data, total_price: temp };
+    return result;
   } catch (error) {
     console.log(error);
   }
